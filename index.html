@@ -1494,7 +1494,51 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                 const barcodeText = `INVBOX:${box.label}`;
                 const imageDataUrl = LabelImage.generateBoxLabel(barcodeText, box.label, box.contents);
                 LabelImage.print(imageDataUrl);
-            }, []);            const handleQRScan = useCallback((data) => { setShowScanner(false); if (data.startsWith('INVBOX:')) { const box = boxes.find(b => b.label === data.replace('INVBOX:', '')); if (box) setSelectedBox(box); } }, [boxes]);
+            }, []);
+
+            const handleQRScan = useCallback((data) => {
+                setShowScanner(false);
+
+                // Handle box barcodes (INVBOX:KS-01)
+                if (data.startsWith('INVBOX:')) {
+                    const boxLabel = data.replace('INVBOX:', '');
+                    const box = boxes.find(b => b.label === boxLabel);
+                    if (box) {
+                        setSelectedBox(box);
+                    } else {
+                        alert(`Box "${boxLabel}" not found`);
+                    }
+                    return;
+                }
+
+                // Handle 12NC codes (12 digits, with or without spaces)
+                const cleanCode = data.replace(/\s/g, '');
+                if (/^\d{12}$/.test(cleanCode)) {
+                    const item = items.find(i => i.nc && i.nc.replace(/\s/g, '') === cleanCode);
+                    if (item) {
+                        setEditItem(item);
+                    } else {
+                        alert(`Item with NC "${data}" not found`);
+                    }
+                    return;
+                }
+
+                // Handle other barcodes - search in item names
+                const searchTerm = data.toLowerCase();
+                const foundItem = items.find(i =>
+                    i.name?.toLowerCase().includes(searchTerm) ||
+                    i.nc?.includes(data)
+                );
+
+                if (foundItem) {
+                    setEditItem(foundItem);
+                } else {
+                    // Set search to barcode value so user can see results
+                    setSearch(data);
+                    setView('items');
+                    alert(`Barcode: ${data}\nNo exact match found. Search updated.`);
+                }
+            }, [boxes, items]);
 
             const exportData = async () => {
                 const zip = new JSZip();
