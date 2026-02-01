@@ -20,7 +20,6 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
@@ -260,126 +259,215 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
         const STORAGE_KEY = 'arnout-lab-inventory-v2';
         const SETTINGS_KEY = 'arnout-lab-settings';
         // IndexedDB Helper for persistent storage with photo support
-        // PDF Label Generator (40x30mm labels)
-        const LabelPDF = {
-            // Convert mm to PDF points (72 points per inch, 25.4mm per inch)
-            mmToPt: (mm) => mm * 72 / 25.4,
-            
-            // Generate a single label PDF
+
+        // App version info
+        const APP_VERSION = '1.0.0';
+        const GIT_HASH = '4b2aad8';
+
+        // LabelImage - Generate label images using Canvas (for single 40x30mm labels)
+        // 40x30mm at 300 DPI = 472x354 pixels
+        const LabelImage = {
+            WIDTH: 472,
+            HEIGHT: 354,
+
+            // Generate box label as image data URL
             generateBoxLabel: function(qrDataUrl, boxLabel, contents) {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF({
-                    orientation: 'landscape',
-                    unit: 'mm',
-                    format: [30, 40] // height x width for landscape
+                return new Promise((resolve) => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = this.WIDTH;
+                    canvas.height = this.HEIGHT;
+                    const ctx = canvas.getContext('2d');
+
+                    // White background
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, this.WIDTH, this.HEIGHT);
+
+                    // Draw border (dashed)
+                    ctx.strokeStyle = '#cccccc';
+                    ctx.setLineDash([5, 5]);
+                    ctx.strokeRect(2, 2, this.WIDTH - 4, this.HEIGHT - 4);
+                    ctx.setLineDash([]);
+
+                    const drawText = () => {
+                        // Box label (bold, centered)
+                        ctx.fillStyle = '#000000';
+                        ctx.font = 'bold 42px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(boxLabel, this.WIDTH / 2, 280);
+
+                        // Contents (smaller, centered)
+                        if (contents) {
+                            ctx.font = '24px Arial';
+                            ctx.fillStyle = '#666666';
+                            const truncated = contents.length > 30 ? contents.substring(0, 27) + '...' : contents;
+                            ctx.fillText(truncated, this.WIDTH / 2, 320);
+                        }
+
+                        resolve(canvas.toDataURL('image/png'));
+                    };
+
+                    // Draw QR code
+                    if (qrDataUrl) {
+                        const qrImg = new Image();
+                        qrImg.onload = () => {
+                            // QR centered, ~210px (18mm at 300dpi)
+                            const qrSize = 210;
+                            ctx.drawImage(qrImg, (this.WIDTH - qrSize) / 2, 15, qrSize, qrSize);
+                            drawText();
+                        };
+                        qrImg.onerror = () => drawText();
+                        qrImg.src = qrDataUrl;
+                    } else {
+                        drawText();
+                    }
                 });
-                
-                // QR code (centered, 18mm)
-                if (qrDataUrl) {
-                    doc.addImage(qrDataUrl, 'PNG', 11, 2, 18, 18);
-                }
-                
-                // Box label (bold, centered)
-                doc.setFontSize(12);
-                doc.setFont(undefined, 'bold');
-                doc.text(boxLabel, 20, 23, { align: 'center' });
-                
-                // Contents (smaller, centered)
-                if (contents) {
-                    doc.setFontSize(7);
-                    doc.setFont(undefined, 'normal');
-                    const truncated = contents.length > 25 ? contents.substring(0, 22) + '...' : contents;
-                    doc.text(truncated, 20, 27, { align: 'center' });
-                }
-                
-                return doc;
             },
-            
-            // Generate item 12NC label PDF
+
+            // Generate item 12NC label as image data URL
             generateItemLabel: function(qrDataUrl, nc, itemName) {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF({
-                    orientation: 'landscape',
-                    unit: 'mm',
-                    format: [30, 40]
+                return new Promise((resolve) => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = this.WIDTH;
+                    canvas.height = this.HEIGHT;
+                    const ctx = canvas.getContext('2d');
+
+                    // White background
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, this.WIDTH, this.HEIGHT);
+
+                    // Draw border
+                    ctx.strokeStyle = '#cccccc';
+                    ctx.setLineDash([5, 5]);
+                    ctx.strokeRect(2, 2, this.WIDTH - 4, this.HEIGHT - 4);
+                    ctx.setLineDash([]);
+
+                    const drawText = () => {
+                        // 12NC code (monospace, bold)
+                        ctx.fillStyle = '#000000';
+                        ctx.font = 'bold 32px Courier New, monospace';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(nc || '', this.WIDTH / 2, 275);
+
+                        // Item name (smaller)
+                        if (itemName) {
+                            ctx.font = '22px Arial';
+                            ctx.fillStyle = '#666666';
+                            const truncated = itemName.length > 35 ? itemName.substring(0, 32) + '...' : itemName;
+                            ctx.fillText(truncated, this.WIDTH / 2, 315);
+                        }
+
+                        resolve(canvas.toDataURL('image/png'));
+                    };
+
+                    // Draw QR code
+                    if (qrDataUrl) {
+                        const qrImg = new Image();
+                        qrImg.onload = () => {
+                            const qrSize = 210;
+                            ctx.drawImage(qrImg, (this.WIDTH - qrSize) / 2, 10, qrSize, qrSize);
+                            drawText();
+                        };
+                        qrImg.onerror = () => drawText();
+                        qrImg.src = qrDataUrl;
+                    } else {
+                        drawText();
+                    }
                 });
-                
-                // QR code
-                if (qrDataUrl) {
-                    doc.addImage(qrDataUrl, 'PNG', 11, 1, 18, 18);
-                }
-                
-                // 12NC code (monospace style)
-                doc.setFontSize(9);
-                doc.setFont('courier', 'bold');
-                doc.text(nc || '', 20, 22, { align: 'center' });
-                
-                // Item name (smaller)
-                if (itemName) {
-                    doc.setFontSize(6);
-                    doc.setFont('helvetica', 'normal');
-                    const truncated = itemName.length > 30 ? itemName.substring(0, 27) + '...' : itemName;
-                    doc.text(truncated, 20, 27, { align: 'center' });
-                }
-                
-                return doc;
             },
-            
-            // Generate multiple labels on one page (for batch printing)
-            generateBatchLabels: function(labels) {
-                const { jsPDF } = window.jspdf;
-                // A4 can fit 5 columns x 7 rows of 40x30mm labels
-                const doc = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
-                });
-                
-                const labelWidth = 40;
-                const labelHeight = 30;
-                const cols = 5;
-                const rows = 7;
-                const marginX = (210 - cols * labelWidth) / 2;
-                const marginY = (297 - rows * labelHeight) / 2;
-                
-                labels.forEach((label, idx) => {
-                    const page = Math.floor(idx / (cols * rows));
-                    const posOnPage = idx % (cols * rows);
-                    const col = posOnPage % cols;
-                    const row = Math.floor(posOnPage / cols);
-                    
-                    if (page > 0 && posOnPage === 0) {
-                        doc.addPage();
-                    }
-                    
-                    const x = marginX + col * labelWidth;
-                    const y = marginY + row * labelHeight;
-                    
-                    // Draw label border (dashed)
-                    doc.setDrawColor(200);
-                    doc.setLineDashPattern([1, 1], 0);
-                    doc.rect(x, y, labelWidth, labelHeight);
-                    
-                    // QR code
-                    if (label.qrDataUrl) {
-                        doc.addImage(label.qrDataUrl, 'PNG', x + 11, y + 2, 18, 18);
-                    }
-                    
-                    // Label text
-                    doc.setFontSize(10);
-                    doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(0);
-                    doc.text(label.title, x + 20, y + 23, { align: 'center' });
-                    
-                    if (label.subtitle) {
-                        doc.setFontSize(6);
-                        doc.setFont('helvetica', 'normal');
-                        const truncated = label.subtitle.length > 25 ? label.subtitle.substring(0, 22) + '...' : label.subtitle;
-                        doc.text(truncated, x + 20, y + 27, { align: 'center' });
-                    }
-                });
-                
-                return doc;
+
+            // Print a label image in a popup window
+            print: function(imageDataUrl) {
+                const printWindow = window.open('', '_blank', 'width=500,height=400');
+                if (!printWindow) {
+                    alert('Popup blocked! Please allow popups to print labels.');
+                    return;
+                }
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Print Label</title>
+                        <style>
+                            @page { size: 40mm 30mm; margin: 0; }
+                            * { margin: 0; padding: 0; }
+                            body { display: flex; justify-content: center; align-items: center; }
+                            img { width: 40mm; height: 30mm; }
+                            @media screen { body { padding: 10mm; } }
+                        </style>
+                    </head>
+                    <body>
+                        <img src="${imageDataUrl}" />
+                        <scr` + `ipt>
+                            window.onload = () => setTimeout(() => { window.print(); }, 300);
+                        </scr` + `ipt>
+                    </body>
+                    </html>
+                `);
+                printWindow.document.close();
+            },
+
+            // Print multiple labels (batch) - generates images on A4-style grid
+            printBatch: async function(labels, includeContents) {
+                // Generate all label images first
+                const images = [];
+                for (const label of labels) {
+                    const img = await this.generateBoxLabel(label.qrDataUrl, label.title, includeContents ? label.subtitle : '');
+                    images.push(img);
+                }
+
+                const printWindow = window.open('', '_blank', 'width=800,height=600');
+                if (!printWindow) {
+                    alert('Popup blocked! Please allow popups to print labels.');
+                    return;
+                }
+
+                // Create HTML with grid of labels
+                const labelsHtml = images.map(img =>
+                    `<div class="label"><img src="${img}" /></div>`
+                ).join('');
+
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Print Labels</title>
+                        <style>
+                            @page { size: A4; margin: 5mm; }
+                            * { margin: 0; padding: 0; box-sizing: border-box; }
+                            body { font-family: Arial, sans-serif; }
+                            .container {
+                                display: flex;
+                                flex-wrap: wrap;
+                                gap: 0;
+                                justify-content: center;
+                            }
+                            .label {
+                                width: 40mm;
+                                height: 30mm;
+                                page-break-inside: avoid;
+                            }
+                            .label img {
+                                width: 100%;
+                                height: 100%;
+                                object-fit: contain;
+                            }
+                            @media screen {
+                                body { padding: 10mm; }
+                                .label { border: 1px dashed #ccc; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            ${labelsHtml}
+                        </div>
+                        <scr` + `ipt>
+                            window.onload = () => setTimeout(() => { window.print(); }, 500);
+                        </scr` + `ipt>
+                    </body>
+                    </html>
+                `);
+                printWindow.document.close();
             }
         };
 
@@ -584,7 +672,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
             const handlePrint = async () => {
                 if (selectedBoxes.length === 0) return alert('Selecteer minstens 1 box');
 
-                // Generate labels for PDF
+                // Generate labels for batch printing
                 const labels = [];
                 for (const label of selectedBoxes) {
                     const box = boxes.find(b => b.label === label);
@@ -593,15 +681,13 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                         labels.push({
                             qrDataUrl,
                             title: label,
-                            subtitle: includeContents && box ? box.contents : ''
+                            subtitle: box ? box.contents : ''
                         });
                     }
                 }
 
-                // Generate PDF and open for printing
-                const pdf = LabelPDF.generateBatchLabels(labels);
-                pdf.autoPrint();
-                window.open(pdf.output('bloburl'), '_blank');
+                // Print using canvas-based images
+                await LabelImage.printBatch(labels, includeContents);
             };
 
             return (
@@ -668,6 +754,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
         };
         const SettingsModal = ({ settings, onSave, onClose }) => {
             const [form, setForm] = useState(settings);
+            const [showAbout, setShowAbout] = useState(false);
             return (
                 <div className="fixed inset-0 modal-overlay flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-lg p-6 max-w-md w-full">
@@ -685,6 +772,42 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                 <div>
                                     <label className="text-sm text-gray-600">Threshold</label>
                                     <input type="number" min="0" value={form.lowStockThreshold} onChange={e => setForm({...form, lowStockThreshold: parseInt(e.target.value)||0})} className="w-full px-3 py-2 border rounded mt-1 text-lg"/>
+                                </div>
+                            )}
+                            <hr className="my-2"/>
+                            <button onClick={() => setShowAbout(!showAbout)} className="flex items-center gap-2 text-gray-600 hover:text-blue-500">
+                                <span class="material-icons text-sm">info</span> About
+                            </button>
+                            {showAbout && (
+                                <div className="bg-gray-50 p-3 rounded text-sm">
+                                    <div className="font-bold mb-2">Electronics Lab Inventory</div>
+                                    <div className="text-gray-600">Version: {APP_VERSION}</div>
+                                    <div className="text-gray-600">Git: {GIT_HASH}</div>
+                                    <div className="text-gray-500 mt-2 text-xs">A PWA for managing lab components and boxes with QR code support.</div>
+                                    <button
+                                        onClick={async () => {
+                                            if (confirm('Check for updates and reload?')) {
+                                                // Unregister service worker and clear caches
+                                                if ('serviceWorker' in navigator) {
+                                                    const registrations = await navigator.serviceWorker.getRegistrations();
+                                                    for (const registration of registrations) {
+                                                        await registration.unregister();
+                                                    }
+                                                }
+                                                if ('caches' in window) {
+                                                    const cacheNames = await caches.keys();
+                                                    for (const name of cacheNames) {
+                                                        await caches.delete(name);
+                                                    }
+                                                }
+                                                // Force reload from server
+                                                window.location.reload(true);
+                                            }
+                                        }}
+                                        className="mt-3 w-full px-3 py-2 bg-blue-500 text-white rounded flex items-center justify-center gap-2 hover:bg-blue-600"
+                                    >
+                                        <span class="material-icons text-sm">refresh</span> Check for Updates
+                                    </button>
                                 </div>
                             )}
                         </div>
@@ -838,15 +961,14 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                                     e.preventDefault();
                                                     const nc = (form.nc || '').replace(/ /g, '');
 
-                                                    const printWithPDF = (qrDataUrl) => {
-                                                        const pdf = LabelPDF.generateItemLabel(qrDataUrl, form.nc, form.name);
-                                                        pdf.autoPrint();
-                                                        window.open(pdf.output('bloburl'), '_blank');
+                                                    const printWithImage = async (qrDataUrl) => {
+                                                        const imageDataUrl = await LabelImage.generateItemLabel(qrDataUrl, form.nc, form.name);
+                                                        LabelImage.print(imageDataUrl);
                                                     };
 
                                                     // Try cache first
                                                     const cached = QRCodeCache.get(nc, 150);
-                                                    if (cached) { printWithPDF(cached); return; }
+                                                    if (cached) { printWithImage(cached); return; }
 
                                                     // Generate fresh
                                                     const container = document.createElement('div');
@@ -859,7 +981,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                                         let dataUrl = canvas ? canvas.toDataURL() : (img ? img.src : '');
                                                         document.body.removeChild(container);
                                                         if (dataUrl) QRCodeCache.cache.set(`${nc}_150`, dataUrl);
-                                                        printWithPDF(dataUrl);
+                                                        printWithImage(dataUrl);
                                                     }, 200);
                                                 }}
                                                 className="text-xs text-blue-500 mt-1 hover:underline"
@@ -1226,13 +1348,12 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
             }, []);
             const saveBox = useCallback((box) => { setBoxes(prev => [...prev, box]); setShowAddBox(false); }, []);
 
-            const printSingleQR = useCallback((box) => {
-                const generateAndPrint = (qrDataUrl) => {
-                    const pdf = LabelPDF.generateBoxLabel(qrDataUrl, box.label, box.contents);
-                    pdf.autoPrint();
-                    window.open(pdf.output('bloburl'), '_blank');
+            const printSingleQR = useCallback(async (box) => {
+                const generateAndPrint = async (qrDataUrl) => {
+                    const imageDataUrl = await LabelImage.generateBoxLabel(qrDataUrl, box.label, box.contents);
+                    LabelImage.print(imageDataUrl);
                 };
-                
+
                 // Try cache first
                 const qrText = `INVBOX:${box.label}`;
                 const cached = QRCodeCache.get(qrText, 150);
