@@ -1465,22 +1465,40 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                 return matchSearch && matchTheme;
             }).sort((a, b) => a.label.localeCompare(b.label)), [boxes, search, filterTheme]);
 
-            // Group boxes by location for shelves view
+            // Group boxes by location for shelves view (nested: parent > child > boxes)
             const locationGroups = useMemo(() => {
-                const groups = new Map();
+                const groups = new Map(); // parent -> Map(child -> boxes[])
+
                 boxes.forEach(box => {
                     const loc = box.location || 'Geen locatie';
-                    if (!groups.has(loc)) {
-                        groups.set(loc, []);
+                    // Split location into parent and child (e.g., "Blok 1 Lade A" -> "Blok 1", "Lade A")
+                    const parts = loc.split(' Lade ');
+                    const parent = parts[0];
+                    const child = parts.length > 1 ? 'Lade ' + parts[1] : null;
+
+                    if (!groups.has(parent)) {
+                        groups.set(parent, new Map());
                     }
-                    groups.get(loc).push(box);
+                    const children = groups.get(parent);
+                    const childKey = child || '_root';
+                    if (!children.has(childKey)) {
+                        children.set(childKey, []);
+                    }
+                    children.get(childKey).push(box);
                 });
-                // Sort locations and boxes within
+
+                // Convert to sorted array structure
                 return Array.from(groups.entries())
                     .sort((a, b) => a[0].localeCompare(b[0]))
-                    .map(([location, locationBoxes]) => ({
-                        location,
-                        boxes: locationBoxes.sort((a, b) => a.label.localeCompare(b.label))
+                    .map(([parent, children]) => ({
+                        parent,
+                        children: Array.from(children.entries())
+                            .sort((a, b) => a[0].localeCompare(b[0]))
+                            .map(([child, childBoxes]) => ({
+                                name: child === '_root' ? null : child,
+                                boxes: childBoxes.sort((a, b) => a.label.localeCompare(b.label))
+                            })),
+                        totalBoxes: Array.from(children.values()).flat().length
                     }));
             }, [boxes]);
             
@@ -1570,44 +1588,64 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
 
                     {view === 'shelves' && (
                         <div className="space-y-2">
-                            {locationGroups.map(({ location, boxes: locationBoxes }) => (
-                                <div key={location} className="bg-white rounded-xl shadow overflow-hidden">
-                                    <div 
-                                        onClick={() => toggleLocation(location)}
+                            {locationGroups.map(({ parent, children, totalBoxes }) => (
+                                <div key={parent} className="bg-white rounded-xl shadow overflow-hidden">
+                                    <div
+                                        onClick={() => toggleLocation(parent)}
                                         className="p-3 flex justify-between items-center cursor-pointer hover:bg-gray-50"
                                     >
                                         <div>
-                                            <h3 className="font-bold">{location}</h3>
-                                            <span className="text-xs text-gray-500">{locationBoxes.length} boxes</span>
+                                            <h3 className="font-bold">{parent}</h3>
+                                            <span className="text-xs text-gray-500">{totalBoxes} boxes</span>
                                         </div>
-                                        <span className="text-xl text-gray-400">{expandedLocations.has(location) ? '▼' : '▶'}</span>
+                                        <span className="text-xl text-gray-400">{expandedLocations.has(parent) ? '▼' : '▶'}</span>
                                     </div>
-                                    {expandedLocations.has(location) && (
-                                        <div className="border-t divide-y">
-                                            {locationBoxes.map(box => {
-                                                const boxItems = items.filter(i => i.box === box.label);
-                                                const hasLowStock = boxItems.some(i => isLowStock(i));
-                                                return (
-                                                    <div
-                                                        key={box.label}
-                                                        onClick={() => setSelectedBox(box)}
-                                                        className={`p-2 pl-4 flex justify-between items-center cursor-pointer hover:bg-gray-50 ${hasLowStock ? 'bg-red-50' : ''}`}
-                                                    >
-                                                        <div className="flex items-center gap-2">
-                                                            <span className={`w-2 h-2 rounded-full ${{'Electronics': 'bg-blue-500', '3D Printing': 'bg-yellow-500', 'Mechanical': 'bg-green-500'}[box.theme] || 'bg-gray-400'}`}></span>
+                                    {expandedLocations.has(parent) && (
+                                        <div className="border-t">
+                                            {children.map(({ name: childName, boxes: childBoxes }) => (
+                                                <div key={childName || '_root'}>
+                                                    {childName && (
+                                                        <div
+                                                            onClick={() => toggleLocation(parent + ':' + childName)}
+                                                            className="p-2 pl-6 flex justify-between items-center cursor-pointer hover:bg-gray-100 bg-gray-50 border-b"
+                                                        >
                                                             <div>
-                                                                <span className="font-medium">{box.label}</span>
-                                                                <span className="text-gray-500 text-sm ml-2">{box.contents}</span>
-                                                                {box.type && <span className="text-blue-400 text-xs ml-2">{box.type}</span>}
+                                                                <span className="font-medium text-gray-700">{childName}</span>
+                                                                <span className="text-xs text-gray-500 ml-2">{childBoxes.length} boxes</span>
                                                             </div>
+                                                            <span className="text-gray-400">{expandedLocations.has(parent + ':' + childName) ? '▼' : '▶'}</span>
                                                         </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-xs text-gray-400">{boxItems.length} items</span>
-                                                            {hasLowStock && <span>⚠️</span>}
+                                                    )}
+                                                    {(!childName || expandedLocations.has(parent + ':' + childName)) && (
+                                                        <div className="divide-y">
+                                                            {childBoxes.map(box => {
+                                                                const boxItems = items.filter(i => i.box === box.label);
+                                                                const hasLowStock = boxItems.some(i => isLowStock(i));
+                                                                return (
+                                                                    <div
+                                                                        key={box.label}
+                                                                        onClick={() => setSelectedBox(box)}
+                                                                        className={`p-2 ${childName ? 'pl-10' : 'pl-6'} flex justify-between items-center cursor-pointer hover:bg-gray-50 ${hasLowStock ? 'bg-red-50' : ''}`}
+                                                                    >
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className={`w-2 h-2 rounded-full ${{'Electronics': 'bg-blue-500', '3D Printing': 'bg-yellow-500', 'Mechanical': 'bg-green-500'}[box.theme] || 'bg-gray-400'}`}></span>
+                                                                            <div>
+                                                                                <span className="font-medium">{box.label}</span>
+                                                                                <span className="text-gray-500 text-sm ml-2">{box.contents}</span>
+                                                                                {box.type && <span className="text-blue-400 text-xs ml-2">{box.type}</span>}
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="text-xs text-gray-400">{boxItems.length} items</span>
+                                                                            {hasLowStock && <span>⚠️</span>}
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
                                                         </div>
-                                                    </div>
-                                                );
-                                            })}
+                                                    )}
+                                                </div>
+                                            ))}
                                         </div>
                                     )}
                                 </div>
