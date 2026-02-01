@@ -86,25 +86,33 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
         @media screen { .print-only { display: none; } }
         .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
         
-        /* Dark mode styles */
-        .dark { background-color: #1f2937 !important; color: #f3f4f6; }
-        .dark .bg-white { background-color: #374151 !important; }
-        .dark .bg-gray-100 { background-color: #1f2937 !important; }
-        .dark .bg-gray-50 { background-color: #4b5563 !important; }
-        .dark .bg-gray-300 { background-color: #6b7280 !important; }
-        .dark .text-gray-500, .dark .text-gray-600 { color: #9ca3af !important; }
-        .dark .text-gray-400 { color: #d1d5db !important; }
+        /* Dark mode styles - high contrast */
+        .dark { background-color: #111827 !important; color: #f9fafb !important; }
+        .dark .bg-white { background-color: #1f2937 !important; color: #f9fafb !important; }
+        .dark .bg-gray-100 { background-color: #111827 !important; }
+        .dark .bg-gray-50 { background-color: #374151 !important; color: #f9fafb !important; }
+        .dark .bg-gray-300 { background-color: #4b5563 !important; color: #f9fafb !important; }
+        .dark .text-gray-500, .dark .text-gray-600 { color: #d1d5db !important; }
+        .dark .text-gray-400 { color: #e5e7eb !important; }
+        .dark .text-gray-700 { color: #e5e7eb !important; }
         .dark .border { border-color: #4b5563 !important; }
-        .dark input, .dark select { background-color: #4b5563 !important; color: #f3f4f6 !important; border-color: #6b7280 !important; }
-        .dark .theme-electronics { background-color: #1e3a5f !important; }
-        .dark .theme-3dprint { background-color: #4a3728 !important; }
-        .dark .theme-mechanical { background-color: #1a3a2a !important; }
-        .dark .theme-other { background-color: #374151 !important; }
-        .dark .modal-overlay { background: rgba(0,0,0,0.7); }
-        .dark .bg-red-50 { background-color: #4a2020 !important; }
-        .dark .bg-red-100 { background-color: #5a2a2a !important; }
-        .dark .bg-green-100 { background-color: #2a4a2a !important; }
-        .dark .bg-blue-100 { background-color: #2a3a5a !important; }
+        .dark input, .dark select { background-color: #374151 !important; color: #f9fafb !important; border-color: #6b7280 !important; }
+        .dark input::placeholder { color: #9ca3af !important; }
+        .dark label { color: #e5e7eb !important; }
+        .dark h3, .dark h4, .dark .font-bold, .dark .font-medium { color: #f9fafb !important; }
+        .dark .text-sm, .dark .text-xs { color: #d1d5db !important; }
+        .dark .theme-electronics { background-color: #1e3a5f !important; color: #e0f2fe !important; }
+        .dark .theme-3dprint { background-color: #4a3728 !important; color: #fef3c7 !important; }
+        .dark .theme-mechanical { background-color: #1a3a2a !important; color: #d1fae5 !important; }
+        .dark .theme-other { background-color: #374151 !important; color: #e5e7eb !important; }
+        .dark .modal-overlay { background: rgba(0,0,0,0.8); }
+        .dark .bg-red-50 { background-color: #450a0a !important; color: #fecaca !important; }
+        .dark .bg-red-100 { background-color: #7f1d1d !important; color: #fecaca !important; }
+        .dark .bg-green-100 { background-color: #14532d !important; color: #bbf7d0 !important; }
+        .dark .bg-blue-100 { background-color: #1e3a8a !important; color: #bfdbfe !important; }
+        .dark .divide-y > * { border-color: #4b5563 !important; }
+        .dark .shadow { box-shadow: 0 1px 3px rgba(0,0,0,0.5) !important; }
+        .dark .rounded-xl, .dark .rounded-lg { border: 1px solid #374151; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen safe-bottom">
