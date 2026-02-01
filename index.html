@@ -20,6 +20,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
@@ -259,6 +260,129 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
         const STORAGE_KEY = 'arnout-lab-inventory-v2';
         const SETTINGS_KEY = 'arnout-lab-settings';
         // IndexedDB Helper for persistent storage with photo support
+        // PDF Label Generator (40x30mm labels)
+        const LabelPDF = {
+            // Convert mm to PDF points (72 points per inch, 25.4mm per inch)
+            mmToPt: (mm) => mm * 72 / 25.4,
+            
+            // Generate a single label PDF
+            generateBoxLabel: function(qrDataUrl, boxLabel, contents) {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({
+                    orientation: 'landscape',
+                    unit: 'mm',
+                    format: [30, 40] // height x width for landscape
+                });
+                
+                // QR code (centered, 18mm)
+                if (qrDataUrl) {
+                    doc.addImage(qrDataUrl, 'PNG', 11, 2, 18, 18);
+                }
+                
+                // Box label (bold, centered)
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'bold');
+                doc.text(boxLabel, 20, 23, { align: 'center' });
+                
+                // Contents (smaller, centered)
+                if (contents) {
+                    doc.setFontSize(7);
+                    doc.setFont(undefined, 'normal');
+                    const truncated = contents.length > 25 ? contents.substring(0, 22) + '...' : contents;
+                    doc.text(truncated, 20, 27, { align: 'center' });
+                }
+                
+                return doc;
+            },
+            
+            // Generate item 12NC label PDF
+            generateItemLabel: function(qrDataUrl, nc, itemName) {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({
+                    orientation: 'landscape',
+                    unit: 'mm',
+                    format: [30, 40]
+                });
+                
+                // QR code
+                if (qrDataUrl) {
+                    doc.addImage(qrDataUrl, 'PNG', 11, 1, 18, 18);
+                }
+                
+                // 12NC code (monospace style)
+                doc.setFontSize(9);
+                doc.setFont('courier', 'bold');
+                doc.text(nc || '', 20, 22, { align: 'center' });
+                
+                // Item name (smaller)
+                if (itemName) {
+                    doc.setFontSize(6);
+                    doc.setFont('helvetica', 'normal');
+                    const truncated = itemName.length > 30 ? itemName.substring(0, 27) + '...' : itemName;
+                    doc.text(truncated, 20, 27, { align: 'center' });
+                }
+                
+                return doc;
+            },
+            
+            // Generate multiple labels on one page (for batch printing)
+            generateBatchLabels: function(labels) {
+                const { jsPDF } = window.jspdf;
+                // A4 can fit 5 columns x 7 rows of 40x30mm labels
+                const doc = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+                
+                const labelWidth = 40;
+                const labelHeight = 30;
+                const cols = 5;
+                const rows = 7;
+                const marginX = (210 - cols * labelWidth) / 2;
+                const marginY = (297 - rows * labelHeight) / 2;
+                
+                labels.forEach((label, idx) => {
+                    const page = Math.floor(idx / (cols * rows));
+                    const posOnPage = idx % (cols * rows);
+                    const col = posOnPage % cols;
+                    const row = Math.floor(posOnPage / cols);
+                    
+                    if (page > 0 && posOnPage === 0) {
+                        doc.addPage();
+                    }
+                    
+                    const x = marginX + col * labelWidth;
+                    const y = marginY + row * labelHeight;
+                    
+                    // Draw label border (dashed)
+                    doc.setDrawColor(200);
+                    doc.setLineDashPattern([1, 1], 0);
+                    doc.rect(x, y, labelWidth, labelHeight);
+                    
+                    // QR code
+                    if (label.qrDataUrl) {
+                        doc.addImage(label.qrDataUrl, 'PNG', x + 11, y + 2, 18, 18);
+                    }
+                    
+                    // Label text
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(0);
+                    doc.text(label.title, x + 20, y + 23, { align: 'center' });
+                    
+                    if (label.subtitle) {
+                        doc.setFontSize(6);
+                        doc.setFont('helvetica', 'normal');
+                        const truncated = label.subtitle.length > 25 ? label.subtitle.substring(0, 22) + '...' : label.subtitle;
+                        doc.text(truncated, x + 20, y + 27, { align: 'center' });
+                    }
+                });
+                
+                return doc;
+            }
+        };
+
         const DB_NAME = 'lab-inventory-db';
         const DB_VERSION = 1;
         
@@ -412,7 +536,6 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
         // PrintQRModal - Generate and print QR codes for boxes (via CUPS)
         const PrintQRModal = ({ boxes, onClose }) => {
             const [selectedBoxes, setSelectedBoxes] = useState([]);
-            const [labelSize, setLabelSize] = useState('medium');
             const [copies, setCopies] = useState(1);
             const [includeContents, setIncludeContents] = useState(true);
             const printContainerRef = useRef(null);
@@ -460,79 +583,25 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
 
             const handlePrint = async () => {
                 if (selectedBoxes.length === 0) return alert('Selecteer minstens 1 box');
-                
-                const labelsHtml = [];
-                const sizeClass = { small: 'qr-label-small', medium: '', large: 'qr-label-large' }[labelSize];
-                const qrSize = { small: 80, medium: 100, large: 140 }[labelSize];
 
+                // Generate labels for PDF
+                const labels = [];
                 for (const label of selectedBoxes) {
                     const box = boxes.find(b => b.label === label);
-                    const qrDataUrl = await generateQRDataUrl(`INVBOX:${label}`, qrSize);
+                    const qrDataUrl = await generateQRDataUrl(`INVBOX:${label}`, 150);
                     for (let i = 0; i < copies; i++) {
-                        labelsHtml.push(`
-                            <div class="qr-label ${sizeClass}">
-                                <img class="qr-code-img" src="${qrDataUrl}" alt="QR ${escapeHtml(label)}"/>
-                                <div class="label-text">${escapeHtml(label)}</div>
-                                ${includeContents && box ? `<div class="label-desc">${escapeHtml(box.contents || '')}</div>` : ''}
-                            </div>
-                        `);
+                        labels.push({
+                            qrDataUrl,
+                            title: label,
+                            subtitle: includeContents && box ? box.contents : ''
+                        });
                     }
                 }
 
-                const printWindow = window.open('', '_blank', 'width=800,height=600');
-                if (!printWindow) {
-                    alert('Popup blocked! Please allow popups for this site to print QR labels.');
-                    return;
-                }
-                printWindow.document.write(`
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <title>Print QR Labels</title>
-                        <style>
-                            * { margin: 0; padding: 0; box-sizing: border-box; }
-                            body { font-family: Arial, sans-serif; }
-                            .qr-print-container {
-                                display: flex;
-                                flex-wrap: wrap;
-                                gap: 0;
-                                padding: 5mm;
-                            }
-                            .qr-label {
-                                width: 50mm;
-                                height: 30mm;
-                                border: 0.5px dashed #ccc;
-                                display: flex;
-                                flex-direction: column;
-                                align-items: center;
-                                justify-content: center;
-                                page-break-inside: avoid;
-                                box-sizing: border-box;
-                                padding: 2mm;
-                            }
-                            .qr-label-large { width: 62mm; height: 40mm; }
-                            .qr-label-small { width: 38mm; height: 21mm; }
-                            .qr-label .qr-code-img { width: auto; height: 60%; }
-                            .qr-label .label-text { font-size: 10pt; font-weight: bold; margin-top: 1mm; }
-                            .qr-label .label-desc { font-size: 7pt; color: #666; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
-                            @media print {
-                                .qr-label { border: 0.5px dashed #ccc; }
-                            }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="qr-print-container">
-                            ${labelsHtml.join('')}
-                        </div>
-                        <scr" + "ipt>
-                            window.onload = function() {
-                                setTimeout(function() { window.print(); }, 500);
-                            };
-                        </scr" + "ipt>
-                    </body>
-                    </html>
-                `);
-                printWindow.document.close();
+                // Generate PDF and open for printing
+                const pdf = LabelPDF.generateBatchLabels(labels);
+                pdf.autoPrint();
+                window.open(pdf.output('bloburl'), '_blank');
             };
 
             return (
@@ -573,11 +642,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="text-sm text-gray-600">Label Size</label>
-                                    <select value={labelSize} onChange={e => setLabelSize(e.target.value)} className="w-full px-3 py-2 border rounded-lg">
-                                        <option value="small">Small (38x21mm)</option>
-                                        <option value="medium">Medium (50x30mm)</option>
-                                        <option value="large">Large (62x40mm)</option>
-                                    </select>
+                                    <div className="px-3 py-2 border rounded-lg bg-gray-50 text-gray-700">40×30mm (PDF)</div>
                                 </div>
                                 <div>
                                     <label className="text-sm text-gray-600">Copies per label</label>
@@ -767,39 +832,22 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                     {form.nc && (
                                         <div className="flex flex-col items-center">
                                             <QRCode value={(form.nc || '').replace(/ /g, '')} size={80} />
-                                            <button 
+                                            <button
                                                 type="button"
                                                 onClick={(e) => {
                                                     e.preventDefault();
                                                     const nc = (form.nc || '').replace(/ /g, '');
-                                                    
-                                                    const printWithQR = (qrDataUrl) => {
-                                                        const printWindow = window.open('', '_blank', 'width=400,height=400');
-                                                        if (!printWindow) { alert('Popup blocked!'); return; }
-                                                        printWindow.document.write(`
-                                                            <!DOCTYPE html><html><head><title>Print 12NC QR</title>
-                                                            <style>
-                                                                body { font-family: Arial; display: flex; justify-content: center; padding: 10mm; }
-                                                                .label { display: flex; flex-direction: column; align-items: center; border: 0.5px dashed #ccc; padding: 5mm; }
-                                                                .label img { width: 30mm; height: 30mm; }
-                                                                .label .nc { font-size: 12pt; font-weight: bold; font-family: monospace; margin-top: 2mm; }
-                                                                .label .name { font-size: 8pt; color: #666; margin-top: 1mm; max-width: 50mm; text-align: center; }
-                                                            </style></head>
-                                                            <body><div class="label">
-                                                                ${qrDataUrl ? `<img src="${qrDataUrl}"/>` : '<div style="width:30mm;height:30mm;border:1px solid #ccc;"></div>'}
-                                                                <div class="nc">${escapeHtml(form.nc)}</div>
-                                                                <div class="name">${escapeHtml(form.name || '')}</div>
-                                                            </div>
-                                                            <scr` + `ipt>window.onload = () => setTimeout(() => window.print(), 500);</scr` + `ipt>
-                                                            </body></html>
-                                                        `);
-                                                        printWindow.document.close();
+
+                                                    const printWithPDF = (qrDataUrl) => {
+                                                        const pdf = LabelPDF.generateItemLabel(qrDataUrl, form.nc, form.name);
+                                                        pdf.autoPrint();
+                                                        window.open(pdf.output('bloburl'), '_blank');
                                                     };
-                                                    
+
                                                     // Try cache first
                                                     const cached = QRCodeCache.get(nc, 150);
-                                                    if (cached) { printWithQR(cached); return; }
-                                                    
+                                                    if (cached) { printWithPDF(cached); return; }
+
                                                     // Generate fresh
                                                     const container = document.createElement('div');
                                                     container.style.cssText = 'position:absolute;left:-9999px;';
@@ -810,7 +858,8 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                                         const img = container.querySelector('img');
                                                         let dataUrl = canvas ? canvas.toDataURL() : (img ? img.src : '');
                                                         document.body.removeChild(container);
-                                                        printWithQR(dataUrl);
+                                                        if (dataUrl) QRCodeCache.cache.set(`${nc}_150`, dataUrl);
+                                                        printWithPDF(dataUrl);
                                                     }, 200);
                                                 }}
                                                 className="text-xs text-blue-500 mt-1 hover:underline"
@@ -1178,73 +1227,30 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
             const saveBox = useCallback((box) => { setBoxes(prev => [...prev, box]); setShowAddBox(false); }, []);
 
             const printSingleQR = useCallback((box) => {
-                // Generate QR code directly in print context to ensure it's ready
-                const printWithQR = (qrDataUrl) => {
-                    const printWindow = window.open('', '_blank', 'width=400,height=400');
-                    if (!printWindow) {
-                        alert('Popup blocked! Please allow popups for this site to print QR labels.');
-                        return;
-                    }
-                    printWindow.document.write(`
-                        <!DOCTYPE html>
-                        <html>
-                        <head>
-                            <title>Print QR - ${escapeHtml(box.label)}</title>
-                            <style>
-                                * { margin: 0; padding: 0; box-sizing: border-box; }
-                                body { font-family: Arial, sans-serif; display: flex; justify-content: center; padding: 10mm; }
-                                .qr-label {
-                                    width: 50mm;
-                                    height: 30mm;
-                                    border: 0.5px dashed #ccc;
-                                    display: flex;
-                                    flex-direction: column;
-                                    align-items: center;
-                                    justify-content: center;
-                                    padding: 2mm;
-                                }
-                                .qr-label img { width: auto; height: 60%; }
-                                .qr-label .label-text { font-size: 10pt; font-weight: bold; margin-top: 1mm; }
-                                .qr-label .label-desc { font-size: 7pt; color: #666; text-align: center; }
-                            </style>
-                        </head>
-                        <body>
-                            <div class="qr-label">
-                                ${qrDataUrl ? `<img src="${qrDataUrl}" alt="QR"/>` : '<div style="width:60px;height:60px;border:1px solid #ccc;display:flex;align-items:center;justify-content:center;font-size:8px;color:#999;">QR Error</div>'}
-                                <div class="label-text">${escapeHtml(box.label)}</div>
-                                <div class="label-desc">${escapeHtml(box.contents || '')}</div>
-                            </div>
-                            <scr` + `ipt>window.onload = function() { setTimeout(function() { window.print(); }, 500); };</scr` + `ipt>
-                        </body>
-                        </html>
-                    `);
-                    printWindow.document.close();
+                const generateAndPrint = (qrDataUrl) => {
+                    const pdf = LabelPDF.generateBoxLabel(qrDataUrl, box.label, box.contents);
+                    pdf.autoPrint();
+                    window.open(pdf.output('bloburl'), '_blank');
                 };
                 
-                // Try cache first, then generate fresh if needed
+                // Try cache first
                 const qrText = `INVBOX:${box.label}`;
                 const cached = QRCodeCache.get(qrText, 150);
                 if (cached) {
-                    printWithQR(cached);
+                    generateAndPrint(cached);
                 } else {
-                    // Generate fresh QR code synchronously in a way that works
+                    // Generate fresh QR
                     const container = document.createElement('div');
-                    container.style.cssText = 'position:absolute;left:-9999px;top:-9999px;';
+                    container.style.cssText = 'position:absolute;left:-9999px;';
                     document.body.appendChild(container);
-                    try {
-                        new window.QRCode(container, { text: qrText, width: 150, height: 150, colorDark: "#000000", colorLight: "#ffffff" });
-                    } catch(e) { console.error('QR error:', e); }
-                    
-                    // Wait for rendering then print
+                    try { new window.QRCode(container, { text: qrText, width: 150, height: 150 }); } catch(e) {}
                     setTimeout(() => {
                         const canvas = container.querySelector('canvas');
                         const img = container.querySelector('img');
-                        let dataUrl = '';
-                        if (canvas) dataUrl = canvas.toDataURL('image/png');
-                        else if (img && img.src) dataUrl = img.src;
+                        let dataUrl = canvas ? canvas.toDataURL() : (img ? img.src : '');
                         document.body.removeChild(container);
                         if (dataUrl) QRCodeCache.cache.set(`${qrText}_150`, dataUrl);
-                        printWithQR(dataUrl);
+                        generateAndPrint(dataUrl);
                     }, 200);
                 }
             }, []);            const handleQRScan = useCallback((data) => { setShowScanner(false); if (data.startsWith('INVBOX:')) { const box = boxes.find(b => b.label === data.replace('INVBOX:', '')); if (box) setSelectedBox(box); } }, [boxes]);
