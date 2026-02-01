@@ -261,8 +261,24 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
         // IndexedDB Helper for persistent storage with photo support
 
         // App version info
-        const APP_VERSION = '1.0.0';
-        const GIT_HASH = 'cad748c';
+        const GIT_HASH = '836a1d2';
+        const BUILD_DATE = '2026-02-01';
+
+        // Version history (git commits)
+        const VERSION_HISTORY = [
+            { hash: '836a1d2', date: '2026-02-01', changes: 'Replace low stock warnings with project overallocation warnings' },
+            { hash: 'bcb1994', date: '2026-02-01', changes: 'Add automatic version check with update banner' },
+            { hash: 'd8c5138', date: '2026-02-01', changes: 'Update scanner for CODE128 barcode support' },
+            { hash: 'c106270', date: '2026-02-01', changes: 'Update documentation for recent changes' },
+            { hash: '77b9824', date: '2026-02-01', changes: 'Remove Boxes tab' },
+            { hash: '36239b4', date: '2026-02-01', changes: 'Add sync photos from product links feature' },
+            { hash: '078e893', date: '2026-02-01', changes: 'Update lab map to match physical layout' },
+            { hash: 'e05aecb', date: '2026-02-01', changes: 'Add nested menus for Locaties view' },
+            { hash: '6b6cc19', date: '2026-02-01', changes: 'Sort boxes alphabetically by label' },
+            { hash: '76635ed', date: '2026-02-01', changes: 'Add missing JSON fields to GUI display and editing' },
+            { hash: 'cad748c', date: '2026-01-31', changes: 'Switch from QR codes to CODE128 barcodes for label printing' },
+            { hash: 'b42af99', date: '2026-01-31', changes: 'Change batch print to use separate pages per label' },
+        ];
 
         // LabelImage - Generate label images using Canvas (for single 40x30mm labels)
         // 40x30mm at 300 DPI = 472x354 pixels
@@ -795,9 +811,23 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                             {showAbout && (
                                 <div className="bg-gray-50 p-3 rounded text-sm">
                                     <div className="font-bold mb-2">Electronics Lab Inventory</div>
-                                    <div className="text-gray-600">Version: {APP_VERSION}</div>
-                                    <div className="text-gray-600">Git: {GIT_HASH}</div>
-                                    <div className="text-gray-500 mt-2 text-xs">A PWA for managing lab components and boxes with QR code support.</div>
+                                    <div className="text-gray-600">Build: {GIT_HASH}</div>
+                                    <div className="text-gray-600">Date: {BUILD_DATE}</div>
+                                    <div className="text-gray-500 mt-2 text-xs">A PWA for managing lab components and boxes with barcode support.</div>
+                                    <details className="mt-3">
+                                        <summary className="cursor-pointer text-blue-600 hover:text-blue-800 font-medium">Version History</summary>
+                                        <div className="mt-2 max-h-48 overflow-y-auto space-y-1">
+                                            {VERSION_HISTORY.map((v, i) => (
+                                                <div key={v.hash} className={`text-xs p-2 rounded ${i === 0 ? 'bg-blue-100' : 'bg-white'}`}>
+                                                    <div className="flex justify-between">
+                                                        <span className="font-mono text-blue-700">{v.hash}</span>
+                                                        <span className="text-gray-500">{v.date}</span>
+                                                    </div>
+                                                    <div className="text-gray-700 mt-1">{v.changes}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </details>
                                     <button
                                         onClick={async () => {
                                             if (confirm('Check for updates and reload?')) {
