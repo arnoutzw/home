@@ -8,15 +8,18 @@ A Progressive Web App (PWA) for managing electronics lab inventory with QR code 
 - **12NC Identification**: Each item has a unique Philips 12NC code with QR code
 - **Photo Support**: Add photos to items, stored locally in IndexedDB
 - **QR Code Scanning**: Scan QR codes to quickly find boxes
-- **QR Code Printing**: Print QR labels via CUPS/system printer
+- **QR Code Printing**: Print QR labels via CUPS/system printer (40x30mm fixed size)
   - Box QR labels (batch or single)
   - Item 12NC QR labels
-  - Configurable label sizes (38x21mm, 50x30mm, 62x40mm)
+  - Canvas-based image generation for precise sizing
 - **Category Filtering**: Filter by Electronics, 3D Printing, Mechanical, or Other
 - **Low Stock Alerts**: Configurable threshold warnings
 - **Offline Support**: Works without internet connection (PWA)
 - **Auto-Update**: Automatically fetches latest version when online
+- **Version Info**: About section with version number and git hash
+- **Force Update**: Manual update check button in Settings
 - **Mobile Optimized**: Touch-friendly interface with safe area support
+- **Dark Mode**: Toggle dark theme in settings
 
 ## Usage
 
@@ -52,11 +55,14 @@ A Progressive Web App (PWA) for managing electronics lab inventory with QR code 
 
 ### Printing QR Labels
 
-**Box Labels:**
+Labels are generated as high-resolution images (472x354px at 300 DPI) for precise 40x30mm output.
+
+**Batch Box Labels:**
 1. Click 🖨️ in the header
 2. Select boxes to print
-3. Choose label size and copies
-4. Click "Print Labels"
+3. Set number of copies per label
+4. Toggle "Include box description"
+5. Click "Print Labels" - opens print preview with label grid
 
 **Single Box Label:**
 1. Click a box to open details
@@ -133,6 +139,7 @@ lab-inventory/
 - **Storage**: IndexedDB (primary), localStorage (fallback)
 - **Photo Storage**: IndexedDB blobs, auto-resized to max 800px
 - **QR Codes**: qrcodejs (generation), html5-qrcode (scanning)
+- **Label Generation**: HTML5 Canvas (472x354px at 300 DPI for 40x30mm labels)
 - **Printing**: Browser print dialog (works with CUPS)
 
 ### IndexedDB Stores

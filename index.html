@@ -20,7 +20,6 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
@@ -405,66 +404,70 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                     </html>
                 `);
                 printWindow.document.close();
-            }
-        };
+            },
 
-        // LabelPDF - For batch printing multiple labels on A4
-        const LabelPDF = {
-            // Generate multiple labels on one page (for batch printing)
-            generateBatchLabels: function(labels) {
-                const { jsPDF } = window.jspdf;
-                // A4 can fit 5 columns x 7 rows of 40x30mm labels
-                const doc = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
-                });
-                
-                const labelWidth = 40;
-                const labelHeight = 30;
-                const cols = 5;
-                const rows = 7;
-                const marginX = (210 - cols * labelWidth) / 2;
-                const marginY = (297 - rows * labelHeight) / 2;
-                
-                labels.forEach((label, idx) => {
-                    const page = Math.floor(idx / (cols * rows));
-                    const posOnPage = idx % (cols * rows);
-                    const col = posOnPage % cols;
-                    const row = Math.floor(posOnPage / cols);
-                    
-                    if (page > 0 && posOnPage === 0) {
-                        doc.addPage();
-                    }
-                    
-                    const x = marginX + col * labelWidth;
-                    const y = marginY + row * labelHeight;
-                    
-                    // Draw label border (dashed)
-                    doc.setDrawColor(200);
-                    doc.setLineDashPattern([1, 1], 0);
-                    doc.rect(x, y, labelWidth, labelHeight);
-                    
-                    // QR code
-                    if (label.qrDataUrl) {
-                        doc.addImage(label.qrDataUrl, 'PNG', x + 11, y + 2, 18, 18);
-                    }
-                    
-                    // Label text
-                    doc.setFontSize(10);
-                    doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(0);
-                    doc.text(label.title, x + 20, y + 23, { align: 'center' });
-                    
-                    if (label.subtitle) {
-                        doc.setFontSize(6);
-                        doc.setFont('helvetica', 'normal');
-                        const truncated = label.subtitle.length > 25 ? label.subtitle.substring(0, 22) + '...' : label.subtitle;
-                        doc.text(truncated, x + 20, y + 27, { align: 'center' });
-                    }
-                });
-                
-                return doc;
+            // Print multiple labels (batch) - generates images on A4-style grid
+            printBatch: async function(labels, includeContents) {
+                // Generate all label images first
+                const images = [];
+                for (const label of labels) {
+                    const img = await this.generateBoxLabel(label.qrDataUrl, label.title, includeContents ? label.subtitle : '');
+                    images.push(img);
+                }
+
+                const printWindow = window.open('', '_blank', 'width=800,height=600');
+                if (!printWindow) {
+                    alert('Popup blocked! Please allow popups to print labels.');
+                    return;
+                }
+
+                // Create HTML with grid of labels
+                const labelsHtml = images.map(img =>
+                    `<div class="label"><img src="${img}" /></div>`
+                ).join('');
+
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Print Labels</title>
+                        <style>
+                            @page { size: A4; margin: 5mm; }
+                            * { margin: 0; padding: 0; box-sizing: border-box; }
+                            body { font-family: Arial, sans-serif; }
+                            .container {
+                                display: flex;
+                                flex-wrap: wrap;
+                                gap: 0;
+                                justify-content: center;
+                            }
+                            .label {
+                                width: 40mm;
+                                height: 30mm;
+                                page-break-inside: avoid;
+                            }
+                            .label img {
+                                width: 100%;
+                                height: 100%;
+                                object-fit: contain;
+                            }
+                            @media screen {
+                                body { padding: 10mm; }
+                                .label { border: 1px dashed #ccc; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            ${labelsHtml}
+                        </div>
+                        <scr` + `ipt>
+                            window.onload = () => setTimeout(() => { window.print(); }, 500);
+                        </scr` + `ipt>
+                    </body>
+                    </html>
+                `);
+                printWindow.document.close();
             }
         };
 
@@ -669,7 +672,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
             const handlePrint = async () => {
                 if (selectedBoxes.length === 0) return alert('Selecteer minstens 1 box');
 
-                // Generate labels for PDF
+                // Generate labels for batch printing
                 const labels = [];
                 for (const label of selectedBoxes) {
                     const box = boxes.find(b => b.label === label);
@@ -678,15 +681,13 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                         labels.push({
                             qrDataUrl,
                             title: label,
-                            subtitle: includeContents && box ? box.contents : ''
+                            subtitle: box ? box.contents : ''
                         });
                     }
                 }
 
-                // Generate PDF and open for printing
-                const pdf = LabelPDF.generateBatchLabels(labels);
-                pdf.autoPrint();
-                window.open(pdf.output('bloburl'), '_blank');
+                // Print using canvas-based images
+                await LabelImage.printBatch(labels, includeContents);
             };
 
             return (
