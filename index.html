@@ -770,16 +770,6 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                 <label><span class="material-icons text-sm align-middle mr-1">dark_mode</span> Dark Mode</label>
                                 <input type="checkbox" checked={form.darkMode} onChange={e => setForm({...form, darkMode: e.target.checked})} className="w-6 h-6"/>
                             </div>
-                            <div className="flex items-center justify-between">
-                                <label>Low Stock Alerts</label>
-                                <input type="checkbox" checked={form.lowStockEnabled} onChange={e => setForm({...form, lowStockEnabled: e.target.checked})} className="w-6 h-6"/>
-                            </div>
-                            {form.lowStockEnabled && (
-                                <div>
-                                    <label className="text-sm text-gray-600">Threshold</label>
-                                    <input type="number" min="0" value={form.lowStockThreshold} onChange={e => setForm({...form, lowStockThreshold: parseInt(e.target.value)||0})} className="w-full px-3 py-2 border rounded mt-1 text-lg"/>
-                                </div>
-                            )}
                             <hr className="my-2"/>
                             <div>
                                 <button
@@ -845,7 +835,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
         };
 
         const ItemModal = ({ item, boxes, items, onSave, onClose, onDelete }) => {
-            const [form, setForm] = useState(item || { name: '', category: 'Electronics', subcategory: '', box: 'KS-01', quantity: 1, minStock: 0, value: 0, link: '', image: '', projects: [] });
+            const [form, setForm] = useState(item || { name: '', category: 'Electronics', subcategory: '', box: 'KS-01', quantity: 1, value: 0, link: '', image: '', projects: [] });
             const [newProject, setNewProject] = useState({ name: '', quantity: 1 });
             const [isNewProject, setIsNewProject] = useState(false);
             
@@ -1000,15 +990,9 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                             <select value={form.box} onChange={e => setForm({...form, box: e.target.value})} className="w-full px-3 py-3 border rounded-lg text-lg">
                                 {boxes.map(b => <option key={b.label} value={b.label}>{b.label} - {b.contents}</option>)}
                             </select>
-                            <div className="grid grid-cols-2 gap-2">
-                                <div>
-                                    <label className="text-sm text-gray-500">Aantal</label>
-                                    <input type="number" value={form.quantity} onChange={e => setForm({...form, quantity: parseInt(e.target.value)||0})} className="w-full px-3 py-3 border rounded-lg text-lg"/>
-                                </div>
-                                <div>
-                                    <label className="text-sm text-gray-500">Min. voorraad</label>
-                                    <input type="number" min="0" value={form.minStock || 0} onChange={e => setForm({...form, minStock: parseInt(e.target.value)||0})} className="w-full px-3 py-3 border rounded-lg text-lg"/>
-                                </div>
+                            <div>
+                                <label className="text-sm text-gray-500">Aantal</label>
+                                <input type="number" value={form.quantity} onChange={e => setForm({...form, quantity: parseInt(e.target.value)||0})} className="w-full px-3 py-3 border rounded-lg text-lg"/>
                             </div>
                             <div>
                                 <label className="text-sm text-gray-500">Waarde (€ per stuk)</label>
@@ -1116,11 +1100,11 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
             );
         };
 
-        const BoxModal = ({ box, items, onClose, onUpdateItem, onEditItem, settings, onPrintQR }) => {
+        const BoxModal = ({ box, items, onClose, onUpdateItem, onEditItem, onPrintQR }) => {
             const boxItems = items.filter(i => i.box === box.label);
-            const isLowStock = (item) => {
-                if (item.minStock > 0) return item.quantity <= item.minStock;
-                return settings.lowStockEnabled && item.quantity <= settings.lowStockThreshold;
+            const isOverallocated = (item) => {
+                const allocated = (item.projects || []).reduce((sum, p) => sum + (p.quantity || 0), 0);
+                return allocated > item.quantity;
             };
             return (
                 <div className="fixed inset-0 modal-overlay flex items-center justify-center z-50 p-4">
@@ -1138,7 +1122,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                         <h4 className="font-bold mb-2">{boxItems.length} items</h4>
                         <div className="space-y-2 max-h-64 overflow-y-auto">
                             {boxItems.map(item => (
-                                <div key={item.id} className={`flex items-center justify-between p-2 rounded-lg ${isLowStock(item) ? 'bg-red-50' : 'bg-gray-50'}`}>
+                                <div key={item.id} className={`flex items-center justify-between p-2 rounded-lg ${isOverallocated(item) ? 'bg-red-50' : 'bg-gray-50'}`}>
                                     <div className="flex-1 min-w-0 pr-2" onClick={() => onEditItem(item)}>
                                         <div className="font-medium truncate">{item.name}</div>
                                     </div>
@@ -1242,12 +1226,12 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
             const [loading, setLoading] = useState(true);
             const [boxes, setBoxes] = useState([]);
             const [items, setItems] = useState([]);
-            const [settings, setSettings] = useState({ lowStockEnabled: false, lowStockThreshold: 2, darkMode: false });
-            
+            const [settings, setSettings] = useState({ darkMode: false });
+
             // Load settings from IndexedDB
             useEffect(() => {
                 dbGet('settings', 'main').then(saved => {
-                    if (saved) setSettings({ lowStockEnabled: saved.lowStockEnabled, lowStockThreshold: saved.lowStockThreshold, darkMode: saved.darkMode || false });
+                    if (saved) setSettings({ darkMode: saved.darkMode || false });
                 }).catch(() => {
                     const saved = localStorage.getItem(SETTINGS_KEY);
                     if (saved) setSettings(JSON.parse(saved));
@@ -1560,12 +1544,12 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                 e.target.value = '';
             };
 
-            // Low stock check: use per-item minStock if set, otherwise global threshold
-            const isLowStock = (item) => {
-                if (item.minStock > 0) return item.quantity <= item.minStock;
-                return settings.lowStockEnabled && item.quantity <= settings.lowStockThreshold;
+            // Check if item has more allocated to projects than available
+            const isOverallocated = (item) => {
+                const allocated = (item.projects || []).reduce((sum, p) => sum + (p.quantity || 0), 0);
+                return allocated > item.quantity;
             };
-            const lowStockItems = useMemo(() => items.filter(i => isLowStock(i)), [items, settings]);
+            const overallocatedItems = useMemo(() => items.filter(i => isOverallocated(i)), [items]);
 
             const filteredItems = useMemo(() => items.filter(item => {
                 const matchSearch = !search || item.name?.toLowerCase().includes(search.toLowerCase()) || item.box?.toLowerCase().includes(search.toLowerCase());
@@ -1686,9 +1670,9 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                         </div>
                     </div>
 
-                    {settings.lowStockEnabled && lowStockItems.length > 0 && (
+                    {overallocatedItems.length > 0 && (
                         <div className="bg-red-100 border-l-4 border-red-500 p-3 mb-3 rounded-lg">
-                            <div className="font-bold text-red-700 text-sm">⚠️ Low Stock: {lowStockItems.length}</div>
+                            <div className="font-bold text-red-700 text-sm">⚠️ Overallocated: {overallocatedItems.length} items have more allocated to projects than available</div>
                         </div>
                     )}
 
@@ -1742,12 +1726,12 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                                         <div className="divide-y">
                                                             {childBoxes.map(box => {
                                                                 const boxItems = items.filter(i => i.box === box.label);
-                                                                const hasLowStock = boxItems.some(i => isLowStock(i));
+                                                                const hasOverallocated = boxItems.some(i => isOverallocated(i));
                                                                 return (
                                                                     <div
                                                                         key={box.label}
                                                                         onClick={() => setSelectedBox(box)}
-                                                                        className={`p-2 ${childName ? 'pl-10' : 'pl-6'} flex justify-between items-center cursor-pointer hover:bg-gray-50 ${hasLowStock ? 'bg-red-50' : ''}`}
+                                                                        className={`p-2 ${childName ? 'pl-10' : 'pl-6'} flex justify-between items-center cursor-pointer hover:bg-gray-50 ${hasOverallocated ? 'bg-red-50' : ''}`}
                                                                     >
                                                                         <div className="flex items-center gap-2">
                                                                             <span className={`w-2 h-2 rounded-full ${{'Electronics': 'bg-blue-500', '3D Printing': 'bg-yellow-500', 'Mechanical': 'bg-green-500'}[box.theme] || 'bg-gray-400'}`}></span>
@@ -1759,7 +1743,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                                                         </div>
                                                                         <div className="flex items-center gap-2">
                                                                             <span className="text-xs text-gray-400">{boxItems.length} items</span>
-                                                                            {hasLowStock && <span>⚠️</span>}
+                                                                            {hasOverallocated && <span>⚠️</span>}
                                                                         </div>
                                                                     </div>
                                                                 );
@@ -1779,7 +1763,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                         <div className="bg-white rounded-xl shadow overflow-hidden">
                             <div className="divide-y max-h-96 overflow-y-auto">
                                 {(showAllItems ? filteredItems : filteredItems.slice(0,50)).map(item => (
-                                    <div key={item.id} className={`flex items-center p-3 ${isLowStock(item) ? 'bg-red-50' : ''}`} onClick={() => setEditItem(item)}>
+                                    <div key={item.id} className={`flex items-center p-3 ${isOverallocated(item) ? 'bg-red-50' : ''}`} onClick={() => setEditItem(item)}>
                                         {item.image && <img src={item.image.startsWith('http') ? item.image : `https:${item.image}`} alt="" className="w-10 h-10 object-cover rounded mr-2 flex-shrink-0" onError={e => e.target.style.display='none'}/>}
                                         <div className="flex-1 min-w-0">
                                             <div className="font-medium truncate">{item.name}</div>
@@ -1788,7 +1772,6 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                                 {item.box} • {item.category}
                                                 {item.subcategory && <span className="text-purple-600"> • {item.subcategory}</span>}
                                                 {item.value > 0 && <span className="text-green-600"> • €{item.value.toFixed(2)}</span>}
-                                                {item.minStock > 0 && <span className="text-orange-500"> • min:{item.minStock}</span>}
                                                 {item.projects?.length > 0 && <span className="text-blue-500"> • {item.projects.length} project(s)</span>}
                                                 {item.link && <span className="text-blue-400"> • 🔗</span>}
                                             </div>
@@ -1856,14 +1839,14 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                     {view === 'map' && (() => {
                         const getLocationStats = (parentName) => {
                             const group = locationGroups.find(g => g.parent === parentName);
-                            if (!group) return { boxes: 0, items: 0, hasLowStock: false, children: [] };
+                            if (!group) return { boxes: 0, items: 0, hasOverallocated: false, children: [] };
                             const allBoxes = group.children.flatMap(c => c.boxes);
                             const totalItems = allBoxes.reduce((sum, box) =>
                                 sum + items.filter(i => i.box === box.label).length, 0);
-                            const hasLowStock = allBoxes.some(box =>
-                                items.filter(i => i.box === box.label).some(i => isLowStock(i)));
+                            const hasOverallocated = allBoxes.some(box =>
+                                items.filter(i => i.box === box.label).some(i => isOverallocated(i)));
                             const childNames = group.children.filter(c => c.name).map(c => c.name.replace('Lade ', '')).join(',');
-                            return { boxes: allBoxes.length, items: totalItems, hasLowStock, childNames };
+                            return { boxes: allBoxes.length, items: totalItems, hasOverallocated, childNames };
                         };
                         const navigateToLocation = (parentName) => {
                             setExpandedLocations(new Set([parentName]));
@@ -1881,11 +1864,11 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                                 <button
                                                     key={name}
                                                     onClick={() => navigateToLocation(name)}
-                                                    className={`flex-1 border border-gray-500 bg-gray-800 text-white p-2 text-left hover:bg-gray-700 transition rounded ${stats.hasLowStock ? 'border-red-500' : ''}`}
+                                                    className={`flex-1 border border-gray-500 bg-gray-800 text-white p-2 text-left hover:bg-gray-700 transition rounded ${stats.hasOverallocated ? 'border-red-500' : ''}`}
                                                 >
                                                     <div className="font-bold text-sm">{name}</div>
                                                     <div className="text-xs text-gray-400">Lade {stats.childNames || 'A,B,C,D'}</div>
-                                                    {stats.hasLowStock && <span className="text-red-400 text-xs">⚠️</span>}
+                                                    {stats.hasOverallocated && <span className="text-red-400 text-xs">⚠️</span>}
                                                 </button>
                                             );
                                         })}
@@ -1898,11 +1881,11 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                                                 <button
                                                     key={name}
                                                     onClick={() => navigateToLocation(name)}
-                                                    className={`w-12 border border-gray-500 bg-gray-800 text-white hover:bg-gray-700 transition rounded flex items-center justify-center ${stats.hasLowStock ? 'border-red-500' : ''}`}
+                                                    className={`w-12 border border-gray-500 bg-gray-800 text-white hover:bg-gray-700 transition rounded flex items-center justify-center ${stats.hasOverallocated ? 'border-red-500' : ''}`}
                                                     style={{writingMode: 'vertical-rl', textOrientation: 'mixed'}}
                                                 >
                                                     <span className="font-bold text-sm">{name}</span>
-                                                    {stats.hasLowStock && <span className="text-red-400 ml-1">⚠️</span>}
+                                                    {stats.hasOverallocated && <span className="text-red-400 ml-1">⚠️</span>}
                                                 </button>
                                             );
                                         })}
@@ -1937,7 +1920,7 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
                         )}
                     </div>
 
-                    {selectedBox && <BoxModal box={selectedBox} items={items} settings={settings} onClose={() => setSelectedBox(null)} onUpdateItem={updateQuantity} onEditItem={setEditItem} onPrintQR={printSingleQR} />}
+                    {selectedBox && <BoxModal box={selectedBox} items={items} onClose={() => setSelectedBox(null)} onUpdateItem={updateQuantity} onEditItem={setEditItem} onPrintQR={printSingleQR} />}
                     {showScanner && <BarcodeScanner onScan={handleQRScan} onClose={() => setShowScanner(false)} />}
                     {showSettings && <SettingsModal settings={settings} onSave={(s) => { setSettings(s); setShowSettings(false); }} onClose={() => setShowSettings(false)} onSyncPhotos={syncPhotosFromLinks} />}
                     {(editItem || showAddItem) && <ItemModal item={editItem} boxes={boxes} items={items} onSave={saveItem} onClose={() => { setEditItem(null); setShowAddItem(false); }} onDelete={deleteItem} />}
