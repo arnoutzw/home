@@ -188,19 +188,42 @@ window.INVENTORY_DATABASE = {"version": "1.0", "created": "2026-01-31", "stats":
 
 
         const QRCode = ({ value, size = 128 }) => {
-            const qrRef = useRef(null);
+            const [qrDataUrl, setQrDataUrl] = useState(null);
+            
             useEffect(() => {
-                if (qrRef.current && value) {
-                    qrRef.current.innerHTML = '';
-                    try {
-                        new window.QRCode(qrRef.current, { text: value, width: size, height: size, colorDark: "#000000", colorLight: "#ffffff" });
-                    } catch (e) {
-                        console.error('QRCode error:', e);
-                    }
+                if (!value) {
+                    setQrDataUrl(null);
+                    return;
+                }
+                
+                // Generate QR in detached element to avoid React conflicts
+                const container = document.createElement('div');
+                try {
+                    new window.QRCode(container, {
+                        text: value,
+                        width: size,
+                        height: size,
+                        colorDark: "#000000",
+                        colorLight: "#ffffff"
+                    });
+                    
+                    // Wait for QR to render, then extract data URL
+                    setTimeout(() => {
+                        const canvas = container.querySelector('canvas');
+                        const img = container.querySelector('img');
+                        if (canvas) {
+                            setQrDataUrl(canvas.toDataURL());
+                        } else if (img) {
+                            setQrDataUrl(img.src);
+                        }
+                    }, 50);
+                } catch (e) {
+                    console.error('QRCode generation error:', e);
                 }
             }, [value, size]);
-            if (!value) return null;
-            return <div ref={qrRef} className="inline-block"></div>;
+            
+            if (!value || !qrDataUrl) return null;
+            return <img src={qrDataUrl} width={size} height={size} alt="QR Code" className="inline-block" />;
         };
 
         const QRScanner = ({ onScan, onClose }) => {
