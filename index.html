@@ -198,10 +198,13 @@
       const renderer = new marked.Renderer();
 
       // Add language label and copy button to code blocks
-      renderer.code = (code, language) => {
-        const validLang = language && hljs.getLanguage(language) ? language : 'plaintext';
+      // Supports both old marked API (positional args) and new marked v12+ API (token object)
+      renderer.code = (codeOrToken, language) => {
+        const code = typeof codeOrToken === 'object' ? (codeOrToken.text || '') : codeOrToken;
+        const lang = typeof codeOrToken === 'object' ? codeOrToken.lang : language;
+        const validLang = lang && hljs.getLanguage(lang) ? lang : 'plaintext';
         const highlighted = hljs.highlight(code, { language: validLang, ignoreIllegals: true }).value;
-        const langLabel = language || 'code';
+        const langLabel = lang || 'code';
         const escapedCode = code.replace(/'/g, "\\'").replace(/\n/g, '\\n');
         return `
           <div class="code-block-wrapper">
@@ -215,17 +218,23 @@
       };
 
       // Make links open in new tab
-      renderer.link = (href, title, text) => {
-        const titleAttr = title ? ` title="${title}"` : '';
-        return `<a href="${href}"${titleAttr} target="_blank" rel="noopener noreferrer">${text}</a>`;
+      renderer.link = (hrefOrToken, title, text) => {
+        const h = typeof hrefOrToken === 'object' ? (hrefOrToken.href || '') : hrefOrToken;
+        const t = typeof hrefOrToken === 'object' ? hrefOrToken.title : title;
+        const txt = typeof hrefOrToken === 'object' ? hrefOrToken.text : text;
+        const titleAttr = t ? ` title="${t}"` : '';
+        return `<a href="${h}"${titleAttr} target="_blank" rel="noopener noreferrer">${txt}</a>`;
       };
 
       // Handle checkboxes in task lists
-      renderer.listitem = (text, task, checked) => {
-        if (task) {
-          return `<li class="task-list-item"><input type="checkbox" ${checked ? 'checked' : ''} disabled> ${text}</li>`;
+      renderer.listitem = (textOrToken, task, checked) => {
+        const txt = typeof textOrToken === 'object' ? textOrToken.text : textOrToken;
+        const isTask = typeof textOrToken === 'object' ? textOrToken.task : task;
+        const isChecked = typeof textOrToken === 'object' ? textOrToken.checked : checked;
+        if (isTask) {
+          return `<li class="task-list-item"><input type="checkbox" ${isChecked ? 'checked' : ''} disabled> ${txt}</li>`;
         }
-        return `<li>${text}</li>`;
+        return `<li>${txt}</li>`;
       };
 
       marked.setOptions({
