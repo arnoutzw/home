@@ -1530,7 +1530,7 @@ function renderElementsToCanvas(ctx, ppm, dpi) {
 }
 
 // ----- Export -----
-function exportPNG() {
+function renderLabelPNG() {
   const dpi = S.exportDPI;
   const ppm = dpi / 25.4; // pixels per mm
   const W = Math.round(S.canvas.width * ppm);
@@ -1540,15 +1540,20 @@ function exportPNG() {
   cv.width = W; cv.height = H;
   const ctx = cv.getContext('2d');
 
-  // White background
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, W, H);
 
   renderElementsToCanvas(ctx, ppm, dpi);
 
-  // Download
+  return { dataUrl: cv.toDataURL('image/png'), W, H };
+}
+
+function exportPNG() {
+  const { dataUrl, W, H } = renderLabelPNG();
+  const dpi = S.exportDPI;
+
   const a = document.createElement('a');
-  a.href = cv.toDataURL('image/png');
+  a.href = dataUrl;
   a.download = `label-${S.canvas.width}x${S.canvas.height}mm-${dpi}dpi.png`;
   document.body.appendChild(a);
   a.click();
@@ -1558,21 +1563,7 @@ function exportPNG() {
 }
 
 function printLabel() {
-  const dpi = S.exportDPI;
-  const ppm = dpi / 25.4;
-  const W = Math.round(S.canvas.width * ppm);
-  const H = Math.round(S.canvas.height * ppm);
-
-  const cv = document.createElement('canvas');
-  cv.width = W; cv.height = H;
-  const ctx = cv.getContext('2d');
-
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, W, H);
-
-  renderElementsToCanvas(ctx, ppm, dpi);
-
-  const imgDataUrl = cv.toDataURL('image/png');
+  const { dataUrl } = renderLabelPNG();
   const wMM = S.canvas.width;
   const hMM = S.canvas.height;
 
@@ -1584,7 +1575,7 @@ function printLabel() {
     'html, body { margin: 0; padding: 0; width: ' + wMM + 'mm; height: ' + hMM + 'mm; }' +
     'img { display: block; width: ' + wMM + 'mm; height: ' + hMM + 'mm; }' +
     '</style></head><body>' +
-    '<img src="' + imgDataUrl + '">' +
+    '<img src="' + dataUrl + '">' +
     '<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();}}<\/script>' +
     '</body></html>'
   );
