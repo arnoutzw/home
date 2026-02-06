@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Biquad Filter Designer - Interactive discrete IIR filter design with real-time frequency response">
+    <meta name="theme-color" content="#09090b">
+    <title>Discrete Filter Designer</title>
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect fill=%27%23f59e0b%27 width=%2732%27 height=%2732%27 rx=%274%27/%3E%3Ctext x=%2716%27 y=%2724%27 font-size=%2718%27 fill=%27%2309090b%27 text-anchor=%27middle%27 font-weight=%27bold%27%3EBQ%3C/text%3E%3C/svg%3E">
+
+    <!-- Fonts (matching main portfolio) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #18181b; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            background: #09090b;
+            color: #a1a1aa;
+            overflow: hidden;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100%;
+        }
+
+        .nav-bar {
+            background: #09090b;
+            border-bottom: 1px solid #3f3f46;
+            padding: 0.75rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .nav-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #f59e0b;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+            gap: 1rem;
+            padding: 1rem;
+            overflow: hidden;
+        }
+
+        .section {
+            background: #18181b;
+            border: 1px solid #3f3f46;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .left-panel {
+            flex: 0 0 320px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-title {
+            margin-bottom: 1rem;
+            color: #fbbf24;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #27272a;
+        }
+
+        .input-group:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+            color: #d4d4d8;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        input[type="number"],
+        select {
+            flex: 1;
+            padding: 0.5rem 0.625rem;
+            background: #27272a;
+            border: 1px solid #3f3f46;
+            color: #e4e4e7;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            border-radius: 0.375rem;
+            transition: all 0.2s ease;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15);
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        select option {
+            background: #27272a;
+            color: #e4e4e7;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            cursor: pointer;
+            accent-color: #f59e0b;
+            height: 6px;
+        }
+
+        .unit-label {
+            color: #d4d4d8;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            min-width: 30px;
+        }
+
+        .coeff-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .coeff-item {
+            background: #27272a;
+            border: 1px solid #3f3f46;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .coeff-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: #71717a;
+            font-weight: 600;
+        }
+
+        .coeff-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: #f59e0b;
+        }
+
+        .plot-tabs {
+            display: flex;
+            gap: 0.375rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .plot-tab {
+            padding: 0.375rem 0.75rem;
+            background: transparent;
+            border: 1px solid #3f3f46;
+            color: #a1a1aa;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-radius: 0.375rem;
+        }
+
+        .plot-tab:hover {
+            background: #27272a;
+            color: #e4e4e7;
+            border-color: #52525b;
+        }
+
+        .plot-tab.active {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+            border-color: rgba(245, 158, 11, 0.4);
+        }
+
+        .plot-area {
+            flex: 1;
+            display: flex;
+            gap: 1rem;
+            min-height: 0;
+        }
+
+        .plot-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        canvas {
+            width: 100%;
+            flex: 1;
+            background: #18181b;
+            border: 1px solid #3f3f46;
+            border-radius: 0.375rem;
+            display: block;
+            min-height: 200px;
+        }
+
+        .pz-canvas-wrap {
+            flex: 0 0 280px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pz-canvas-wrap canvas {
+            aspect-ratio: 1;
+            flex: 0 0 auto;
+        }
+
+        .impl-section {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #3f3f46;
+        }
+
+        .code-block {
+            background: #27272a;
+            border: 1px solid #3f3f46;
+            border-radius: 0.375rem;
+            padding: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: #e4e4e7;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.5;
+        }
+
+        .code-block .keyword { color: #f59e0b; }
+        .code-block .comment { color: #52525b; }
+        .code-block .number { color: #fbbf24; }
+
+        .copy-btn {
+            background: #3f3f46;
+            border: none;
+            color: #a1a1aa;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.2s;
+            margin-left: 0.5rem;
+        }
+
+        .copy-btn:hover {
+            background: #52525b;
+            color: #e4e4e7;
+        }
+
+        .filter-info {
+            font-size: 0.75rem;
+            color: #71717a;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                flex-direction: column;
+                overflow-y: auto;
+            }
+
+            .left-panel {
+                flex: 0 0 auto;
+            }
+
+            .right-panel {
+                flex: 0 0 auto;
+                min-height: 500px;
+            }
+
+            .plot-area {
+                flex-direction: column;
+            }
+
+            .pz-canvas-wrap {
+                flex: 0 0 auto;
+            }
+
+            .pz-canvas-wrap canvas {
+                max-height: 280px;
+                width: auto;
+                margin: 0 auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-bar {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .section {
+                padding: 0.75rem;
+            }
+
+            .coeff-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav-bar">
+            <div class="nav-title">Discrete Filter Designer</div>
+        </div>
+
+        <div class="main-content">
+            <div class="left-panel section">
+                <h3 class="section-title">Filter Parameters</h3>
+
+                <div class="input-group">
+                    <label for="filterType">Filter Type</label>
+                    <select id="filterType">
+                        <option value="lowpass">Low-Pass</option>
+                        <option value="highpass">High-Pass</option>
+                        <option value="bandpass">Band-Pass</option>
+                        <option value="notch">Notch (Band-Stop)</option>
+                        <option value="peaking">Peaking EQ</option>
+                        <option value="lowshelf">Low Shelf</option>
+                        <option value="highshelf">High Shelf</option>
+                        <option value="allpass">All-Pass</option>
+                    </select>
+                    <div class="filter-info" id="filterInfo">Second-order IIR low-pass filter</div>
+                </div>
+
+                <div class="input-group">
+                    <label for="sampleRate">Sample Rate</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="sampleRate" min="1000" max="384000" value="48000" step="1">
+                        <span class="unit-label">Hz</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="frequency">Cutoff / Center Frequency</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="frequency" min="1" max="192000" value="1000" step="1">
+                        <span class="unit-label">Hz</span>
+                    </div>
+                    <input type="range" id="frequencySlider" min="0" max="1" value="0.5" step="0.001" style="margin-top: 0.5rem; width: 100%;">
+                </div>
+
+                <div class="input-group">
+                    <label for="Q">Q Factor</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="Q" min="0.01" max="100" value="0.707" step="0.001">
+                    </div>
+                    <input type="range" id="QSlider" min="-2" max="2" value="-0.15" step="0.01" style="margin-top: 0.5rem; width: 100%;">
+                </div>
+
+                <div class="input-group" id="gainGroup">
+                    <label for="gain">Gain</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="gain" min="-40" max="40" value="6" step="0.1">
+                        <span class="unit-label">dB</span>
+                    </div>
+                    <input type="range" id="gainSlider" min="-40" max="40" value="6" step="0.1" style="margin-top: 0.5rem; width: 100%;">
+                </div>
+
+                <h3 class="section-title" style="margin-top: 0.5rem;">Coefficients (Direct Form I)</h3>
+
+                <div class="coeff-grid" id="coeffGrid">
+                    <div class="coeff-item"><span class="coeff-name">b0</span><span class="coeff-value" id="coeff_b0">0</span></div>
+                    <div class="coeff-item"><span class="coeff-name">b1</span><span class="coeff-value" id="coeff_b1">0</span></div>
+                    <div class="coeff-item"><span class="coeff-name">b2</span><span class="coeff-value" id="coeff_b2">0</span></div>
+                    <div class="coeff-item"><span class="coeff-name">a1</span><span class="coeff-value" id="coeff_a1">0</span></div>
+                    <div class="coeff-item"><span class="coeff-name">a2</span><span class="coeff-value" id="coeff_a2">0</span></div>
+                </div>
+            </div>
+
+            <div class="right-panel section">
+                <div class="plot-tabs">
+                    <button class="plot-tab active" data-plot="magnitude">Magnitude (dB)</button>
+                    <button class="plot-tab" data-plot="phase">Phase</button>
+                    <button class="plot-tab" data-plot="group-delay">Group Delay</button>
+                    <button class="plot-tab" data-plot="impulse">Impulse Response</button>
+                </div>
+
+                <div class="plot-area">
+                    <div class="plot-main">
+                        <canvas id="plotCanvas"></canvas>
+                    </div>
+                    <div class="pz-canvas-wrap">
+                        <h3 class="section-title">Pole-Zero Plot</h3>
+                        <canvas id="pzCanvas"></canvas>
+                    </div>
+                </div>
+
+                <div class="impl-section">
+                    <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                        <h3 class="section-title" style="margin-bottom: 0;">Implementation (C)</h3>
+                        <button class="copy-btn" id="copyBtn">Copy</button>
+                    </div>
+                    <div class="code-block" id="codeBlock"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================================
+        // BIQUAD COEFFICIENT CALCULATION
+        // Robert Bristow-Johnson's Audio EQ Cookbook formulas
+        // ============================================================================
+
+        function computeCoefficients(type, Fs, f0, Q, dBgain) {
+            const A = Math.pow(10, dBgain / 40);
+            const w0 = 2 * Math.PI * f0 / Fs;
+            const cosw0 = Math.cos(w0);
+            const sinw0 = Math.sin(w0);
+            const alpha = sinw0 / (2 * Q);
+
+            let b0, b1, b2, a0, a1, a2;
+
+            switch (type) {
+                case 'lowpass':
+                    b0 = (1 - cosw0) / 2;
+                    b1 = 1 - cosw0;
+                    b2 = (1 - cosw0) / 2;
+                    a0 = 1 + alpha;
+                    a1 = -2 * cosw0;
+                    a2 = 1 - alpha;
+                    break;
+
+                case 'highpass':
+                    b0 = (1 + cosw0) / 2;
+                    b1 = -(1 + cosw0);
+                    b2 = (1 + cosw0) / 2;
+                    a0 = 1 + alpha;
+                    a1 = -2 * cosw0;
+                    a2 = 1 - alpha;
+                    break;
+
+                case 'bandpass':
+                    b0 = alpha;
+                    b1 = 0;
+                    b2 = -alpha;
+                    a0 = 1 + alpha;
+                    a1 = -2 * cosw0;
+                    a2 = 1 - alpha;
+                    break;
+
+                case 'notch':
+                    b0 = 1;
+                    b1 = -2 * cosw0;
+                    b2 = 1;
+                    a0 = 1 + alpha;
+                    a1 = -2 * cosw0;
+                    a2 = 1 - alpha;
+                    break;
+
+                case 'peaking':
+                    b0 = 1 + alpha * A;
+                    b1 = -2 * cosw0;
+                    b2 = 1 - alpha * A;
+                    a0 = 1 + alpha / A;
+                    a1 = -2 * cosw0;
+                    a2 = 1 - alpha / A;
+                    break;
+
+                case 'lowshelf': {
+                    const sq = 2 * Math.sqrt(A) * alpha;
+                    b0 = A * ((A + 1) - (A - 1) * cosw0 + sq);
+                    b1 = 2 * A * ((A - 1) - (A + 1) * cosw0);
+                    b2 = A * ((A + 1) - (A - 1) * cosw0 - sq);
+                    a0 = (A + 1) + (A - 1) * cosw0 + sq;
+                    a1 = -2 * ((A - 1) + (A + 1) * cosw0);
+                    a2 = (A + 1) + (A - 1) * cosw0 - sq;
+                    break;
+                }
+
+                case 'highshelf': {
+                    const sq = 2 * Math.sqrt(A) * alpha;
+                    b0 = A * ((A + 1) + (A - 1) * cosw0 + sq);
+                    b1 = -2 * A * ((A - 1) + (A + 1) * cosw0);
+                    b2 = A * ((A + 1) + (A - 1) * cosw0 - sq);
+                    a0 = (A + 1) - (A - 1) * cosw0 + sq;
+                    a1 = 2 * ((A - 1) - (A + 1) * cosw0);
+                    a2 = (A + 1) - (A - 1) * cosw0 - sq;
+                    break;
+                }
+
+                case 'allpass':
+                    b0 = 1 - alpha;
+                    b1 = -2 * cosw0;
+                    b2 = 1 + alpha;
+                    a0 = 1 + alpha;
+                    a1 = -2 * cosw0;
+                    a2 = 1 - alpha;
+                    break;
+
+                default:
+                    b0 = 1; b1 = 0; b2 = 0; a0 = 1; a1 = 0; a2 = 0;
+            }
+
+            // Normalize by a0
+            return {
+                b0: b0 / a0,
+                b1: b1 / a0,
+                b2: b2 / a0,
+                a1: a1 / a0,
+                a2: a2 / a0
+            };
+        }
+
+        // ============================================================================
+        // FREQUENCY RESPONSE EVALUATION
+        // ============================================================================
+
+        function evalResponse(coeffs, Fs, numPoints) {
+            const { b0, b1, b2, a1, a2 } = coeffs;
+            const freqs = [];
+            const mags = [];
+            const phases = [];
+            const groupDelays = [];
+
+            for (let i = 0; i < numPoints; i++) {
+                // Log-spaced frequency from 10 Hz to Nyquist
+                const logMin = Math.log10(10);
+                const logMax = Math.log10(Fs / 2);
+                const logF = logMin + (logMax - logMin) * (i / (numPoints - 1));
+                const f = Math.pow(10, logF);
+                const w = 2 * Math.PI * f / Fs;
+
+                // H(z) = (b0 + b1*z^-1 + b2*z^-2) / (1 + a1*z^-1 + a2*z^-2)
+                // z = e^(jw)
+                const cosw = Math.cos(w);
+                const sinw = Math.sin(w);
+                const cos2w = Math.cos(2 * w);
+                const sin2w = Math.sin(2 * w);
+
+                const numReal = b0 + b1 * cosw + b2 * cos2w;
+                const numImag = -(b1 * sinw + b2 * sin2w);
+                const denReal = 1 + a1 * cosw + a2 * cos2w;
+                const denImag = -(a1 * sinw + a2 * sin2w);
+
+                const denMagSq = denReal * denReal + denImag * denImag;
+                const hReal = (numReal * denReal + numImag * denImag) / denMagSq;
+                const hImag = (numImag * denReal - numReal * denImag) / denMagSq;
+
+                const mag = Math.sqrt(hReal * hReal + hImag * hImag);
+                const phase = Math.atan2(hImag, hReal);
+
+                freqs.push(f);
+                mags.push(20 * Math.log10(mag + 1e-20));
+                phases.push(phase * 180 / Math.PI);
+            }
+
+            // Group delay via finite difference of phase
+            for (let i = 0; i < numPoints; i++) {
+                if (i === 0 || i === numPoints - 1) {
+                    groupDelays.push(0);
+                    continue;
+                }
+                const w1 = 2 * Math.PI * freqs[i - 1] / Fs;
+                const w2 = 2 * Math.PI * freqs[i + 1] / Fs;
+
+                const ph1 = evalPhaseRad(coeffs, w1);
+                const ph2 = evalPhaseRad(coeffs, w2);
+
+                let dPhase = ph1 - ph2;
+                // Unwrap
+                while (dPhase > Math.PI) dPhase -= 2 * Math.PI;
+                while (dPhase < -Math.PI) dPhase += 2 * Math.PI;
+
+                const dw = w2 - w1;
+                const gd = dPhase / dw;
+                groupDelays.push(gd / Fs * 1000); // in ms
+            }
+
+            return { freqs, mags, phases, groupDelays };
+        }
+
+        function evalPhaseRad(coeffs, w) {
+            const { b0, b1, b2, a1, a2 } = coeffs;
+            const cosw = Math.cos(w);
+            const sinw = Math.sin(w);
+            const cos2w = Math.cos(2 * w);
+            const sin2w = Math.sin(2 * w);
+
+            const numReal = b0 + b1 * cosw + b2 * cos2w;
+            const numImag = -(b1 * sinw + b2 * sin2w);
+            const denReal = 1 + a1 * cosw + a2 * cos2w;
+            const denImag = -(a1 * sinw + a2 * sin2w);
+
+            const denMagSq = denReal * denReal + denImag * denImag;
+            const hReal = (numReal * denReal + numImag * denImag) / denMagSq;
+            const hImag = (numImag * denReal - numReal * denImag) / denMagSq;
+            return Math.atan2(hImag, hReal);
+        }
+
+        // ============================================================================
+        // IMPULSE RESPONSE
+        // ============================================================================
+
+        function computeImpulse(coeffs, numSamples) {
+            const { b0, b1, b2, a1, a2 } = coeffs;
+            const output = [];
+            let x0 = 0, x1 = 0, x2 = 0;
+            let y1 = 0, y2 = 0;
+
+            for (let n = 0; n < numSamples; n++) {
+                x0 = (n === 0) ? 1 : 0;
+                const y0 = b0 * x0 + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+                output.push(y0);
+                x2 = x1;
+                x1 = x0;
+                y2 = y1;
+                y1 = y0;
+            }
+
+            return output;
+        }
+
+        // ============================================================================
+        // POLE-ZERO CALCULATION
+        // ============================================================================
+
+        function computePolesZeros(coeffs) {
+            const { b0, b1, b2, a1, a2 } = coeffs;
+
+            // Zeros: roots of b0 + b1*z^-1 + b2*z^-2 = 0
+            // => b0*z^2 + b1*z + b2 = 0
+            const zeros = quadRoots(b0, b1, b2);
+
+            // Poles: roots of 1 + a1*z^-1 + a2*z^-2 = 0
+            // => z^2 + a1*z + a2 = 0
+            const poles = quadRoots(1, a1, a2);
+
+            return { poles, zeros };
+        }
+
+        function quadRoots(a, b, c) {
+            if (Math.abs(a) < 1e-15) {
+                if (Math.abs(b) < 1e-15) return [];
+                return [{ re: -c / b, im: 0 }];
+            }
+            const disc = b * b - 4 * a * c;
+            if (disc >= 0) {
+                const sqrtDisc = Math.sqrt(disc);
+                return [
+                    { re: (-b + sqrtDisc) / (2 * a), im: 0 },
+                    { re: (-b - sqrtDisc) / (2 * a), im: 0 }
+                ];
+            } else {
+                const realPart = -b / (2 * a);
+                const imagPart = Math.sqrt(-disc) / (2 * a);
+                return [
+                    { re: realPart, im: imagPart },
+                    { re: realPart, im: -imagPart }
+                ];
+            }
+        }
+
+        // ============================================================================
+        // PLOTTING
+        // ============================================================================
+
+        function setupCanvas(canvas) {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+            return { ctx, w: rect.width, h: rect.height };
+        }
+
+        function formatFreq(f) {
+            if (f >= 1000) return (f / 1000).toFixed(f >= 10000 ? 0 : 1) + 'k';
+            return f.toFixed(0);
+        }
+
+        function drawMagnitudePlot(response) {
+            const canvas = document.getElementById('plotCanvas');
+            const { ctx, w, h } = setupCanvas(canvas);
+
+            ctx.fillStyle = '#18181b';
+            ctx.fillRect(0, 0, w, h);
+
+            const margin = { top: 20, right: 20, bottom: 45, left: 55 };
+            const pw = w - margin.left - margin.right;
+            const ph = h - margin.top - margin.bottom;
+
+            const { freqs, mags } = response;
+            const Fs = parseFloat(document.getElementById('sampleRate').value);
+
+            // Auto-range Y axis
+            let minMag = Math.min(...mags);
+            let maxMag = Math.max(...mags);
+            const range = maxMag - minMag;
+            if (range < 10) {
+                const mid = (maxMag + minMag) / 2;
+                minMag = mid - 10;
+                maxMag = mid + 10;
+            } else {
+                minMag -= range * 0.1;
+                maxMag += range * 0.1;
+            }
+
+            // Grid
+            drawLogGrid(ctx, margin, pw, ph, freqs[0], Fs / 2, minMag, maxMag);
+
+            // Curve
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i < freqs.length; i++) {
+                const x = margin.left + (Math.log10(freqs[i]) - Math.log10(freqs[0])) / (Math.log10(Fs / 2) - Math.log10(freqs[0])) * pw;
+                const y = margin.top + ph * (1 - (mags[i] - minMag) / (maxMag - minMag));
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // 0 dB line
+            if (minMag < 0 && maxMag > 0) {
+                ctx.strokeStyle = 'rgba(245, 158, 11, 0.25)';
+                ctx.setLineDash([5, 5]);
+                const y0 = margin.top + ph * (1 - (0 - minMag) / (maxMag - minMag));
+                ctx.beginPath();
+                ctx.moveTo(margin.left, y0);
+                ctx.lineTo(margin.left + pw, y0);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // Axis labels
+            ctx.fillStyle = '#a1a1aa';
+            ctx.font = '11px JetBrains Mono, monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('Frequency (Hz)', w / 2, h - 5);
+            ctx.save();
+            ctx.translate(13, h / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Magnitude (dB)', 0, 0);
+            ctx.restore();
+        }
+
+        function drawPhasePlot(response) {
+            const canvas = document.getElementById('plotCanvas');
+            const { ctx, w, h } = setupCanvas(canvas);
+
+            ctx.fillStyle = '#18181b';
+            ctx.fillRect(0, 0, w, h);
+
+            const margin = { top: 20, right: 20, bottom: 45, left: 55 };
+            const pw = w - margin.left - margin.right;
+            const ph = h - margin.top - margin.bottom;
+
+            const { freqs, phases } = response;
+            const Fs = parseFloat(document.getElementById('sampleRate').value);
+
+            drawLogGrid(ctx, margin, pw, ph, freqs[0], Fs / 2, -180, 180, true);
+
+            ctx.strokeStyle = '#fbbf24';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i < freqs.length; i++) {
+                const x = margin.left + (Math.log10(freqs[i]) - Math.log10(freqs[0])) / (Math.log10(Fs / 2) - Math.log10(freqs[0])) * pw;
+                const y = margin.top + ph * (1 - (phases[i] - (-180)) / 360);
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            ctx.fillStyle = '#a1a1aa';
+            ctx.font = '11px JetBrains Mono, monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('Frequency (Hz)', w / 2, h - 5);
+            ctx.save();
+            ctx.translate(13, h / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Phase (degrees)', 0, 0);
+            ctx.restore();
+        }
+
+        function drawGroupDelayPlot(response) {
+            const canvas = document.getElementById('plotCanvas');
+            const { ctx, w, h } = setupCanvas(canvas);
+
+            ctx.fillStyle = '#18181b';
+            ctx.fillRect(0, 0, w, h);
+
+            const margin = { top: 20, right: 20, bottom: 45, left: 55 };
+            const pw = w - margin.left - margin.right;
+            const ph = h - margin.top - margin.bottom;
+
+            const { freqs, groupDelays } = response;
+            const Fs = parseFloat(document.getElementById('sampleRate').value);
+
+            // Skip edge samples for range
+            const inner = groupDelays.slice(1, -1);
+            let minGd = Math.min(...inner);
+            let maxGd = Math.max(...inner);
+            const range = maxGd - minGd;
+            if (range < 0.1) {
+                const mid = (maxGd + minGd) / 2;
+                minGd = mid - 0.5;
+                maxGd = mid + 0.5;
+            } else {
+                minGd -= range * 0.1;
+                maxGd += range * 0.1;
+            }
+
+            drawLogGrid(ctx, margin, pw, ph, freqs[0], Fs / 2, minGd, maxGd);
+
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            let started = false;
+            for (let i = 1; i < freqs.length - 1; i++) {
+                const x = margin.left + (Math.log10(freqs[i]) - Math.log10(freqs[0])) / (Math.log10(Fs / 2) - Math.log10(freqs[0])) * pw;
+                const y = margin.top + ph * (1 - (groupDelays[i] - minGd) / (maxGd - minGd));
+                const clampedY = Math.max(margin.top, Math.min(margin.top + ph, y));
+                if (!started) { ctx.moveTo(x, clampedY); started = true; } else ctx.lineTo(x, clampedY);
+            }
+            ctx.stroke();
+
+            ctx.fillStyle = '#a1a1aa';
+            ctx.font = '11px JetBrains Mono, monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('Frequency (Hz)', w / 2, h - 5);
+            ctx.save();
+            ctx.translate(13, h / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Group Delay (ms)', 0, 0);
+            ctx.restore();
+        }
+
+        function drawImpulsePlot(coeffs, Fs) {
+            const canvas = document.getElementById('plotCanvas');
+            const { ctx, w, h } = setupCanvas(canvas);
+
+            ctx.fillStyle = '#18181b';
+            ctx.fillRect(0, 0, w, h);
+
+            const margin = { top: 20, right: 20, bottom: 45, left: 55 };
+            const pw = w - margin.left - margin.right;
+            const ph = h - margin.top - margin.bottom;
+
+            const numSamples = 64;
+            const impulse = computeImpulse(coeffs, numSamples);
+
+            let minVal = Math.min(...impulse, 0);
+            let maxVal = Math.max(...impulse, 0);
+            const range = maxVal - minVal;
+            if (range < 0.01) { minVal = -1; maxVal = 1; }
+            else { minVal -= range * 0.1; maxVal += range * 0.1; }
+
+            // Grid
+            ctx.strokeStyle = 'rgba(63, 63, 70, 0.5)';
+            ctx.fillStyle = '#71717a';
+            ctx.font = '10px JetBrains Mono, monospace';
+
+            const ySteps = 5;
+            for (let i = 0; i <= ySteps; i++) {
+                const val = minVal + (maxVal - minVal) * (i / ySteps);
+                const y = margin.top + ph * (1 - i / ySteps);
+                ctx.beginPath();
+                ctx.moveTo(margin.left, y);
+                ctx.lineTo(margin.left + pw, y);
+                ctx.stroke();
+                ctx.textAlign = 'right';
+                ctx.fillText(val.toFixed(3), margin.left - 5, y + 3);
+            }
+
+            // Zero line
+            const y0 = margin.top + ph * (1 - (0 - minVal) / (maxVal - minVal));
+            ctx.strokeStyle = 'rgba(245, 158, 11, 0.25)';
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(margin.left, y0);
+            ctx.lineTo(margin.left + pw, y0);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Sample stems
+            const barWidth = Math.max(2, pw / numSamples * 0.6);
+            for (let n = 0; n < numSamples; n++) {
+                const x = margin.left + (n / (numSamples - 1)) * pw;
+                const y = margin.top + ph * (1 - (impulse[n] - minVal) / (maxVal - minVal));
+
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(x, y0);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+
+                ctx.fillStyle = '#f59e0b';
+                ctx.beginPath();
+                ctx.arc(x, y, 2.5, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+
+            // X axis labels
+            ctx.fillStyle = '#71717a';
+            ctx.textAlign = 'center';
+            ctx.font = '10px JetBrains Mono, monospace';
+            for (let n = 0; n < numSamples; n += 8) {
+                const x = margin.left + (n / (numSamples - 1)) * pw;
+                ctx.fillText('n=' + n, x, margin.top + ph + 20);
+            }
+
+            ctx.fillStyle = '#a1a1aa';
+            ctx.font = '11px JetBrains Mono, monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('Sample (n)', w / 2, h - 5);
+            ctx.save();
+            ctx.translate(13, h / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Amplitude', 0, 0);
+            ctx.restore();
+        }
+
+        function drawLogGrid(ctx, margin, pw, ph, fMin, fMax, yMin, yMax, isPhase) {
+            ctx.strokeStyle = 'rgba(63, 63, 70, 0.5)';
+            ctx.fillStyle = '#71717a';
+            ctx.font = '10px JetBrains Mono, monospace';
+
+            // Vertical grid (log freq)
+            for (let logF = Math.ceil(Math.log10(fMin)); logF <= Math.floor(Math.log10(fMax)); logF++) {
+                const f = Math.pow(10, logF);
+                const x = margin.left + (logF - Math.log10(fMin)) / (Math.log10(fMax) - Math.log10(fMin)) * pw;
+                ctx.beginPath();
+                ctx.moveTo(x, margin.top);
+                ctx.lineTo(x, margin.top + ph);
+                ctx.stroke();
+                ctx.textAlign = 'center';
+                ctx.fillText(formatFreq(f), x, margin.top + ph + 20);
+            }
+
+            // Horizontal grid
+            const steps = isPhase ? 4 : 5;
+            for (let i = 0; i <= steps; i++) {
+                const val = yMin + (yMax - yMin) * (i / steps);
+                const y = margin.top + ph * (1 - i / steps);
+                ctx.beginPath();
+                ctx.moveTo(margin.left, y);
+                ctx.lineTo(margin.left + pw, y);
+                ctx.stroke();
+                ctx.textAlign = 'right';
+                ctx.fillText(val.toFixed(1), margin.left - 5, y + 3);
+            }
+        }
+
+        function drawPoleZero(coeffs) {
+            const canvas = document.getElementById('pzCanvas');
+            const { ctx, w, h } = setupCanvas(canvas);
+
+            ctx.fillStyle = '#18181b';
+            ctx.fillRect(0, 0, w, h);
+
+            const margin = 30;
+            const size = Math.min(w, h) - 2 * margin;
+            const cx = w / 2;
+            const cy = h / 2;
+            const radius = size / 2;
+
+            // Unit circle
+            ctx.strokeStyle = '#3f3f46';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+            ctx.stroke();
+
+            // Axes
+            ctx.strokeStyle = 'rgba(63, 63, 70, 0.5)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(margin, cy);
+            ctx.lineTo(w - margin, cy);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(cx, margin);
+            ctx.lineTo(cx, h - margin);
+            ctx.stroke();
+
+            // Axis labels
+            ctx.fillStyle = '#52525b';
+            ctx.font = '9px JetBrains Mono, monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('Re', w - margin + 12, cy + 3);
+            ctx.fillText('Im', cx, margin - 8);
+            ctx.fillText('1', cx + radius + 2, cy + 12);
+            ctx.fillText('-1', cx - radius - 2, cy + 12);
+
+            const { poles, zeros } = computePolesZeros(coeffs);
+
+            // Draw zeros (circles)
+            zeros.forEach(z => {
+                const x = cx + z.re * radius;
+                const y = cy - z.im * radius;
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, 2 * Math.PI);
+                ctx.stroke();
+            });
+
+            // Draw poles (crosses)
+            poles.forEach(p => {
+                const x = cx + p.re * radius;
+                const y = cy - p.im * radius;
+                ctx.strokeStyle = '#fbbf24';
+                ctx.lineWidth = 2;
+                const s = 6;
+                ctx.beginPath();
+                ctx.moveTo(x - s, y - s);
+                ctx.lineTo(x + s, y + s);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x + s, y - s);
+                ctx.lineTo(x - s, y + s);
+                ctx.stroke();
+            });
+
+            // Legend
+            ctx.font = '9px JetBrains Mono, monospace';
+            ctx.fillStyle = '#71717a';
+            ctx.textAlign = 'left';
+
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(margin + 6, h - margin + 14, 4, 0, 2 * Math.PI);
+            ctx.stroke();
+            ctx.fillText('Zero', margin + 14, h - margin + 17);
+
+            ctx.strokeStyle = '#fbbf24';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(margin + 56, h - margin + 10);
+            ctx.lineTo(margin + 64, h - margin + 18);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(margin + 64, h - margin + 10);
+            ctx.lineTo(margin + 56, h - margin + 18);
+            ctx.stroke();
+            ctx.fillText('Pole', margin + 68, h - margin + 17);
+        }
+
+        // ============================================================================
+        // CODE GENERATION
+        // ============================================================================
+
+        function generateCode(coeffs) {
+            const { b0, b1, b2, a1, a2 } = coeffs;
+            const fmt = v => {
+                const s = v.toPrecision(10);
+                return s.includes('.') ? s : s + '.0';
+            };
+
+            return `<span class="comment">// Biquad filter (Direct Form I)</span>
+<span class="keyword">typedef struct</span> {
+    <span class="keyword">double</span> b0, b1, b2, a1, a2;
+    <span class="keyword">double</span> x1, x2, y1, y2;
+} Biquad;
+
+<span class="keyword">void</span> biquad_init(Biquad *bq) {
+    bq->b0 = <span class="number">${fmt(b0)}</span>;
+    bq->b1 = <span class="number">${fmt(b1)}</span>;
+    bq->b2 = <span class="number">${fmt(b2)}</span>;
+    bq->a1 = <span class="number">${fmt(a1)}</span>;
+    bq->a2 = <span class="number">${fmt(a2)}</span>;
+    bq->x1 = bq->x2 = bq->y1 = bq->y2 = <span class="number">0.0</span>;
+}
+
+<span class="keyword">double</span> biquad_process(Biquad *bq, <span class="keyword">double</span> x) {
+    <span class="keyword">double</span> y = bq->b0*x + bq->b1*bq->x1 + bq->b2*bq->x2
+              - bq->a1*bq->y1 - bq->a2*bq->y2;
+    bq->x2 = bq->x1;  bq->x1 = x;
+    bq->y2 = bq->y1;  bq->y1 = y;
+    <span class="keyword">return</span> y;
+}`;
+        }
+
+        function generatePlainCode(coeffs) {
+            const { b0, b1, b2, a1, a2 } = coeffs;
+            const fmt = v => v.toPrecision(10);
+            return `// Biquad filter (Direct Form I)
+typedef struct {
+    double b0, b1, b2, a1, a2;
+    double x1, x2, y1, y2;
+} Biquad;
+
+void biquad_init(Biquad *bq) {
+    bq->b0 = ${fmt(b0)};
+    bq->b1 = ${fmt(b1)};
+    bq->b2 = ${fmt(b2)};
+    bq->a1 = ${fmt(a1)};
+    bq->a2 = ${fmt(a2)};
+    bq->x1 = bq->x2 = bq->y1 = bq->y2 = 0.0;
+}
+
+double biquad_process(Biquad *bq, double x) {
+    double y = bq->b0*x + bq->b1*bq->x1 + bq->b2*bq->x2
+              - bq->a1*bq->y1 - bq->a2*bq->y2;
+    bq->x2 = bq->x1;  bq->x1 = x;
+    bq->y2 = bq->y1;  bq->y1 = y;
+    return y;
+}`;
+        }
+
+        // ============================================================================
+        // FILTER INFO TEXT
+        // ============================================================================
+
+        const filterDescriptions = {
+            lowpass: 'Second-order IIR low-pass filter',
+            highpass: 'Second-order IIR high-pass filter',
+            bandpass: 'Constant-skirt-gain band-pass filter',
+            notch: 'Second-order notch (band-reject) filter',
+            peaking: 'Parametric peaking EQ filter',
+            lowshelf: 'Low-frequency shelving filter',
+            highshelf: 'High-frequency shelving filter',
+            allpass: 'Second-order all-pass (phase shift) filter'
+        };
+
+        // ============================================================================
+        // UI STATE & UPDATE
+        // ============================================================================
+
+        let currentPlotType = 'magnitude';
+
+        function update() {
+            const type = document.getElementById('filterType').value;
+            const Fs = parseFloat(document.getElementById('sampleRate').value) || 48000;
+            const f0 = parseFloat(document.getElementById('frequency').value) || 1000;
+            const Q = parseFloat(document.getElementById('Q').value) || 0.707;
+            const dBgain = parseFloat(document.getElementById('gain').value) || 0;
+
+            // Clamp frequency to Nyquist
+            const maxFreq = Fs / 2 - 1;
+            if (f0 > maxFreq) {
+                document.getElementById('frequency').value = maxFreq;
+            }
+
+            // Show/hide gain for relevant types
+            const needsGain = ['peaking', 'lowshelf', 'highshelf'].includes(type);
+            document.getElementById('gainGroup').style.display = needsGain ? 'block' : 'none';
+
+            // Filter info
+            document.getElementById('filterInfo').textContent = filterDescriptions[type] || '';
+
+            const coeffs = computeCoefficients(type, Fs, Math.min(f0, maxFreq), Q, dBgain);
+
+            // Display coefficients
+            document.getElementById('coeff_b0').textContent = coeffs.b0.toPrecision(8);
+            document.getElementById('coeff_b1').textContent = coeffs.b1.toPrecision(8);
+            document.getElementById('coeff_b2').textContent = coeffs.b2.toPrecision(8);
+            document.getElementById('coeff_a1').textContent = coeffs.a1.toPrecision(8);
+            document.getElementById('coeff_a2').textContent = coeffs.a2.toPrecision(8);
+
+            // Response
+            const response = evalResponse(coeffs, Fs, 500);
+
+            // Draw current plot
+            switch (currentPlotType) {
+                case 'magnitude': drawMagnitudePlot(response); break;
+                case 'phase': drawPhasePlot(response); break;
+                case 'group-delay': drawGroupDelayPlot(response); break;
+                case 'impulse': drawImpulsePlot(coeffs, Fs); break;
+            }
+
+            // Pole-zero
+            drawPoleZero(coeffs);
+
+            // Code
+            document.getElementById('codeBlock').innerHTML = generateCode(coeffs);
+        }
+
+        // ============================================================================
+        // EVENT LISTENERS
+        // ============================================================================
+
+        // Frequency slider: log-mapped
+        function freqSliderToValue() {
+            const Fs = parseFloat(document.getElementById('sampleRate').value) || 48000;
+            const t = parseFloat(document.getElementById('frequencySlider').value);
+            const logMin = Math.log10(10);
+            const logMax = Math.log10(Fs / 2);
+            return Math.pow(10, logMin + t * (logMax - logMin));
+        }
+
+        function freqValueToSlider(f) {
+            const Fs = parseFloat(document.getElementById('sampleRate').value) || 48000;
+            const logMin = Math.log10(10);
+            const logMax = Math.log10(Fs / 2);
+            return (Math.log10(f) - logMin) / (logMax - logMin);
+        }
+
+        // Q slider: log-mapped
+        function qSliderToValue() {
+            const t = parseFloat(document.getElementById('QSlider').value);
+            return Math.pow(10, t);
+        }
+
+        function qValueToSlider(q) {
+            return Math.log10(q);
+        }
+
+        document.getElementById('frequency').addEventListener('input', () => {
+            const f = parseFloat(document.getElementById('frequency').value) || 1;
+            document.getElementById('frequencySlider').value = freqValueToSlider(f);
+            update();
+        });
+
+        document.getElementById('frequencySlider').addEventListener('input', () => {
+            const f = freqSliderToValue();
+            document.getElementById('frequency').value = Math.round(f);
+            update();
+        });
+
+        document.getElementById('Q').addEventListener('input', () => {
+            const q = parseFloat(document.getElementById('Q').value) || 0.01;
+            document.getElementById('QSlider').value = qValueToSlider(q);
+            update();
+        });
+
+        document.getElementById('QSlider').addEventListener('input', () => {
+            const q = qSliderToValue();
+            document.getElementById('Q').value = q.toFixed(3);
+            update();
+        });
+
+        document.getElementById('gain').addEventListener('input', () => {
+            document.getElementById('gainSlider').value = document.getElementById('gain').value;
+            update();
+        });
+
+        document.getElementById('gainSlider').addEventListener('input', () => {
+            document.getElementById('gain').value = parseFloat(document.getElementById('gainSlider').value).toFixed(1);
+            update();
+        });
+
+        document.getElementById('filterType').addEventListener('change', update);
+        document.getElementById('sampleRate').addEventListener('input', () => {
+            document.getElementById('frequencySlider').value = freqValueToSlider(
+                parseFloat(document.getElementById('frequency').value) || 1000
+            );
+            update();
+        });
+
+        // Plot tabs
+        document.querySelectorAll('.plot-tab').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.plot-tab').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentPlotType = btn.dataset.plot;
+                update();
+            });
+        });
+
+        // Copy button
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const type = document.getElementById('filterType').value;
+            const Fs = parseFloat(document.getElementById('sampleRate').value) || 48000;
+            const f0 = parseFloat(document.getElementById('frequency').value) || 1000;
+            const Q = parseFloat(document.getElementById('Q').value) || 0.707;
+            const dBgain = parseFloat(document.getElementById('gain').value) || 0;
+            const coeffs = computeCoefficients(type, Fs, f0, Q, dBgain);
+            const plain = generatePlainCode(coeffs);
+
+            navigator.clipboard.writeText(plain).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.textContent = 'Copied!';
+                setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+            }).catch(() => {});
+        });
+
+        // Resize handler
+        window.addEventListener('resize', () => { update(); });
+
+        // ============================================================================
+        // INIT
+        // ============================================================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set initial slider positions
+            document.getElementById('frequencySlider').value = freqValueToSlider(1000);
+            document.getElementById('QSlider').value = qValueToSlider(0.707);
+            update();
+        });
+    </script>
+</body>
+</html>
