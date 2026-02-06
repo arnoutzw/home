@@ -892,8 +892,29 @@
     };
 
     // Embedded App View - iframe for local apps
-    const EmbeddedApp = ({ app }) => {
+    const EmbeddedApp = ({ app, isAdmin }) => {
       const isFullscreen = app.fullscreen;
+      const iframeRef = React.useRef(null);
+
+      // Broadcast admin state to iframe on mount and when isAdmin changes
+      React.useEffect(() => {
+        const iframe = iframeRef.current;
+        if (!iframe) return;
+        const sendAuth = () => {
+          try {
+            iframe.contentWindow.postMessage({
+              type: 'admin-auth',
+              isAdmin: !!isAdmin,
+              key: isAdmin ? CONFIG.ADMIN_PASSWORD : null
+            }, '*');
+          } catch(e) {}
+        };
+        // Send on load and on admin change
+        iframe.addEventListener('load', sendAuth);
+        sendAuth();
+        return () => iframe.removeEventListener('load', sendAuth);
+      }, [isAdmin]);
+
       return (
         <div className={`relative w-full bg-zinc-900 overflow-hidden shadow-2xl ${
           isFullscreen
@@ -925,7 +946,7 @@
             </div>
           )}
           {/* iframe - works with local files */}
-          <iframe src={app.url}
+          <iframe ref={iframeRef} src={app.url}
                   className={`w-full border-0 ${isFullscreen ? 'h-full' : 'h-[calc(100%-44px)]'}`}
                   title={app.name}
                   allow="camera; microphone; clipboard-read; clipboard-write" />
@@ -1147,7 +1168,7 @@
           {activeView !== 'projects' && activeView !== 'forked-projects' && (() => {
             const app = CONFIG.INTEGRATED_APPS.find(a => a.id === activeView);
             if (app && app.requiresAdmin && !isAdmin) return null;
-            return app && app.fullscreen ? <EmbeddedApp app={app} /> : null;
+            return app && app.fullscreen ? <EmbeddedApp app={app} isAdmin={isAdmin} /> : null;
           })()}
 
           {/* Main */}
@@ -1156,7 +1177,7 @@
             {activeView !== 'projects' && activeView !== 'forked-projects' && (() => {
               const app = CONFIG.INTEGRATED_APPS.find(a => a.id === activeView);
               if (app && app.requiresAdmin && !isAdmin) return null;
-              return app && !app.fullscreen ? <EmbeddedApp app={app} /> : null;
+              return app && !app.fullscreen ? <EmbeddedApp app={app} isAdmin={isAdmin} /> : null;
             })()}
 
             {/* Projects View */}
