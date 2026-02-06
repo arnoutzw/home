@@ -119,6 +119,22 @@ body {
 }
 .api-settings-btn:hover { border-color: var(--accent); color: var(--accent); }
 .api-settings-btn.configured { color: var(--success); border-color: var(--success); }
+.api-settings-btn.locked { opacity: .4; cursor: not-allowed; }
+.api-settings-btn.locked:hover { border-color: var(--bg-3); color: var(--tx-3); }
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid rgba(245,158,11,.25);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
 
 /* Search */
 .search-wrap {
@@ -614,9 +630,13 @@ body {
       <span class="toggle-track"></span>
     </label>
     <span class="mode-label" id="label-api">NEXAR API</span>
-    <button class="api-settings-btn" id="btn-api-settings" title="API Settings">
+    <button class="api-settings-btn" id="btn-api-settings" title="API Settings (Admin only)">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     </button>
+    <span class="admin-badge" id="admin-badge" style="display:none">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Admin
+    </span>
   </div>
 </div>
 
@@ -673,7 +693,7 @@ body {
     <p class="modal-desc">
       Enter your NEXAR API credentials to search parts directly.
       Get free API keys at <a href="https://nexar.com/api" target="_blank" rel="noopener" style="color:var(--accent)">nexar.com/api</a>.
-      Credentials are stored locally in your browser.
+      <br>Credentials are <strong style="color:var(--success)">AES-256-GCM encrypted</strong> with your admin password before storage.
     </p>
     <label for="cfg-client-id">Client ID</label>
     <input type="text" id="cfg-client-id" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off">
@@ -691,14 +711,14 @@ body {
 <script>
 // ===================================================================
 // DATASHEET SEARCH APP — Link Mode + NEXAR API Mode
+// Credentials encrypted with AES-256-GCM, admin-only access
 // ===================================================================
 
 const STORAGE_KEYS = {
   history: 'ds-search-history',
   bookmarks: 'ds-search-bookmarks',
   mode: 'ds-search-mode',
-  nexarId: 'ds-nexar-client-id',
-  nexarSecret: 'ds-nexar-client-secret',
+  nexarEncrypted: 'ds-nexar-encrypted', // single encrypted blob
 };
 
 // ── NEXAR API Config ──
@@ -764,8 +784,84 @@ let nexarToken = null;
 let nexarTokenExp = 0;
 let searching = false;
 
+// Admin auth state (received from parent via postMessage)
+let adminKey = null;   // encryption passphrase (admin password), null when not admin
+let isAdmin = false;
+// Decrypted credentials (in-memory only while admin is logged in)
+let decryptedCreds = null; // { clientId, clientSecret }
+
 function saveHistory() { localStorage.setItem(STORAGE_KEYS.history, JSON.stringify(searchHistory)); }
 function saveBookmarks() { localStorage.setItem(STORAGE_KEYS.bookmarks, JSON.stringify(bookmarks)); }
+
+// ── AES-256-GCM Encryption (Web Crypto API) ──
+const CRYPTO_SALT_LEN = 16;
+const CRYPTO_IV_LEN = 12;
+const CRYPTO_ITER = 310000;
+
+async function deriveKey(password, salt) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations: CRYPTO_ITER, hash: 'SHA-256' },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
+async function encryptData(password, plaintext) {
+  const enc = new TextEncoder();
+  const salt = crypto.getRandomValues(new Uint8Array(CRYPTO_SALT_LEN));
+  const iv   = crypto.getRandomValues(new Uint8Array(CRYPTO_IV_LEN));
+  const key  = await deriveKey(password, salt);
+  const ct   = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(plaintext));
+  // Pack: salt(16) + iv(12) + ciphertext
+  const buf = new Uint8Array(salt.length + iv.length + ct.byteLength);
+  buf.set(salt, 0);
+  buf.set(iv, salt.length);
+  buf.set(new Uint8Array(ct), salt.length + iv.length);
+  return btoa(String.fromCharCode(...buf));
+}
+
+async function decryptData(password, b64) {
+  const raw = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  const salt = raw.slice(0, CRYPTO_SALT_LEN);
+  const iv   = raw.slice(CRYPTO_SALT_LEN, CRYPTO_SALT_LEN + CRYPTO_IV_LEN);
+  const ct   = raw.slice(CRYPTO_SALT_LEN + CRYPTO_IV_LEN);
+  const key  = await deriveKey(password, salt);
+  const pt   = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+  return new TextDecoder().decode(pt);
+}
+
+// ── Credential helpers ──
+async function saveCredentials(clientId, clientSecret) {
+  if (!adminKey) throw new Error('Admin login required');
+  const payload = JSON.stringify({ clientId, clientSecret });
+  const encrypted = await encryptData(adminKey, payload);
+  localStorage.setItem(STORAGE_KEYS.nexarEncrypted, encrypted);
+}
+
+async function loadCredentials() {
+  if (!adminKey) return null;
+  const b64 = localStorage.getItem(STORAGE_KEYS.nexarEncrypted);
+  if (!b64) return null;
+  try {
+    const json = await decryptData(adminKey, b64);
+    return JSON.parse(json);
+  } catch {
+    return null; // wrong key or corrupted
+  }
+}
+
+function clearCredentials() {
+  localStorage.removeItem(STORAGE_KEYS.nexarEncrypted);
+  decryptedCreds = null;
+  nexarToken = null;
+  nexarTokenExp = 0;
+}
 
 // ── DOM refs ──
 const modeToggle  = document.getElementById('mode-toggle');
@@ -775,6 +871,26 @@ const searchHint  = document.getElementById('search-hint');
 const btnSettings = document.getElementById('btn-api-settings');
 const settingsModal = document.getElementById('settings-modal');
 const btnSearch   = document.getElementById('btn-search');
+const adminBadge  = document.getElementById('admin-badge');
+
+// ── Admin auth via postMessage ──
+window.addEventListener('message', async (e) => {
+  if (!e.data || e.data.type !== 'admin-auth') return;
+  isAdmin = !!e.data.isAdmin;
+  adminKey = e.data.key || null;
+  adminBadge.style.display = isAdmin ? '' : 'none';
+  btnSettings.classList.toggle('locked', !isAdmin);
+
+  if (isAdmin && adminKey) {
+    // Try to decrypt stored credentials
+    decryptedCreds = await loadCredentials();
+  } else {
+    decryptedCreds = null;
+    nexarToken = null;
+    nexarTokenExp = 0;
+  }
+  updateModeUI();
+});
 
 // ── Mode Toggle ──
 function updateModeUI() {
@@ -784,24 +900,28 @@ function updateModeUI() {
   searchHint.textContent = useApi
     ? 'Press Enter to search via NEXAR API'
     : 'Press Enter to search \u2022 Results open on datasheet provider sites';
-  const hasKeys = !!(localStorage.getItem(STORAGE_KEYS.nexarId));
-  btnSettings.classList.toggle('configured', hasKeys);
+  const hasEncrypted = !!localStorage.getItem(STORAGE_KEYS.nexarEncrypted);
+  btnSettings.classList.toggle('configured', hasEncrypted && isAdmin && !!decryptedCreds);
 }
 
 modeToggle.addEventListener('change', () => {
   useApi = modeToggle.checked;
   localStorage.setItem(STORAGE_KEYS.mode, useApi ? 'api' : 'link');
   updateModeUI();
-  // If switching to API and no credentials, open settings
-  if (useApi && !localStorage.getItem(STORAGE_KEYS.nexarId)) {
-    openSettings();
+  if (useApi && !decryptedCreds) {
+    if (isAdmin) openSettings();
   }
 });
 
 // ── Settings Modal ──
-function openSettings() {
-  document.getElementById('cfg-client-id').value = localStorage.getItem(STORAGE_KEYS.nexarId) || '';
-  document.getElementById('cfg-client-secret').value = localStorage.getItem(STORAGE_KEYS.nexarSecret) || '';
+async function openSettings() {
+  if (!isAdmin) {
+    alert('Admin login required to manage API credentials.\nLog in as admin on the main page first.');
+    return;
+  }
+  const creds = decryptedCreds || await loadCredentials();
+  document.getElementById('cfg-client-id').value = creds?.clientId || '';
+  document.getElementById('cfg-client-secret').value = creds?.clientSecret || '';
   const st = document.getElementById('settings-status');
   st.className = 'modal-status';
   st.style.display = 'none';
@@ -811,10 +931,7 @@ function openSettings() {
 btnSettings.addEventListener('click', openSettings);
 document.getElementById('btn-cfg-cancel').addEventListener('click', () => settingsModal.classList.remove('active'));
 document.getElementById('btn-cfg-clear').addEventListener('click', () => {
-  localStorage.removeItem(STORAGE_KEYS.nexarId);
-  localStorage.removeItem(STORAGE_KEYS.nexarSecret);
-  nexarToken = null;
-  nexarTokenExp = 0;
+  clearCredentials();
   document.getElementById('cfg-client-id').value = '';
   document.getElementById('cfg-client-secret').value = '';
   const st = document.getElementById('settings-status');
@@ -827,6 +944,11 @@ document.getElementById('btn-cfg-save').addEventListener('click', async () => {
   const id = document.getElementById('cfg-client-id').value.trim();
   const secret = document.getElementById('cfg-client-secret').value.trim();
   const st = document.getElementById('settings-status');
+  if (!isAdmin || !adminKey) {
+    st.textContent = 'Admin login required to save credentials.';
+    st.className = 'modal-status err';
+    return;
+  }
   if (!id || !secret) {
     st.textContent = 'Both Client ID and Client Secret are required.';
     st.className = 'modal-status err';
@@ -838,12 +960,12 @@ document.getElementById('btn-cfg-save').addEventListener('click', async () => {
   try {
     const token = await fetchNexarToken(id, secret);
     if (token) {
-      localStorage.setItem(STORAGE_KEYS.nexarId, id);
-      localStorage.setItem(STORAGE_KEYS.nexarSecret, secret);
-      st.textContent = 'Connected successfully! Token valid for 24h.';
+      await saveCredentials(id, secret);
+      decryptedCreds = { clientId: id, clientSecret: secret };
+      st.textContent = 'Connected & encrypted! Credentials saved securely.';
       st.className = 'modal-status ok';
       updateModeUI();
-      setTimeout(() => settingsModal.classList.remove('active'), 1200);
+      setTimeout(() => settingsModal.classList.remove('active'), 1500);
     }
   } catch (e) {
     st.textContent = 'Connection failed: ' + e.message;
@@ -882,10 +1004,12 @@ async function fetchNexarToken(clientId, clientSecret) {
 
 async function getToken() {
   if (nexarToken && Date.now() < nexarTokenExp) return nexarToken;
-  const id = localStorage.getItem(STORAGE_KEYS.nexarId);
-  const secret = localStorage.getItem(STORAGE_KEYS.nexarSecret);
-  if (!id || !secret) throw new Error('NEXAR API credentials not configured');
-  return fetchNexarToken(id, secret);
+  if (!decryptedCreds) {
+    if (!isAdmin || !adminKey) throw new Error('Admin login required to use NEXAR API');
+    decryptedCreds = await loadCredentials();
+    if (!decryptedCreds) throw new Error('NEXAR API credentials not configured. Open Settings to add them.');
+  }
+  return fetchNexarToken(decryptedCreds.clientId, decryptedCreds.clientSecret);
 }
 
 async function nexarSearch(query) {
@@ -1212,6 +1336,15 @@ document.getElementById('btn-search').addEventListener('click', () => doSearch(d
 document.getElementById('search-input').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(e.target.value); });
 document.getElementById('search-input').addEventListener('input', e => { if (!e.target.value.trim()) clearSearchResults(); });
 document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+
+// Migrate old unencrypted credentials (remove them)
+if (localStorage.getItem('ds-nexar-client-id')) {
+  localStorage.removeItem('ds-nexar-client-id');
+  localStorage.removeItem('ds-nexar-client-secret');
+}
+
+// Settings button starts locked (admin auth required)
+btnSettings.classList.add('locked');
 
 updateModeUI();
 renderPopular();
