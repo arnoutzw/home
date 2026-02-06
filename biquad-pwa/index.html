@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f1923">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<title>Biquad Filter Designer</title>
+<style>
+  :root {
+    --bg-primary: #0f1923;
+    --bg-secondary: #162230;
+    --bg-tertiary: #1c2e40;
+    --bg-input: #0d1520;
+    --border: #2a4055;
+    --text-primary: #e8edf2;
+    --text-secondary: #8a9bb0;
+    --text-muted: #5a6f82;
+    --accent: #00b4d8;
+    --accent-dim: #0088a3;
+    --accent2: #ff6b6b;
+    --accent3: #51cf66;
+    --accent4: #ffd43b;
+    --grid-line: rgba(42, 64, 85, 0.5);
+    --grid-line-major: rgba(42, 64, 85, 0.9);
+    --radius: 8px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo svg { flex-shrink: 0; }
+
+  .logo h1 {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--accent);
+  }
+
+  .logo span {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  .sample-rate-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sample-rate-group label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .sample-rate-group input {
+    width: 90px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 13px;
+    padding: 5px 8px;
+    text-align: right;
+  }
+
+  .sample-rate-group .unit {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .ts-display {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-left: 4px;
+  }
+
+  .app-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: calc(100vh - 52px);
+  }
+
+  .sidebar {
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border);
+    padding: 16px;
+    overflow-y: auto;
+  }
+
+  .section-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    margin-top: 16px;
+  }
+
+  .section-title:first-child { margin-top: 0; }
+
+  .filter-types {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+  }
+
+  .filter-btn {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 11px;
+    padding: 7px 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+
+  .filter-btn:hover {
+    background: var(--bg-input);
+    color: var(--text-primary);
+    border-color: var(--accent-dim);
+  }
+
+  .filter-btn.active {
+    background: rgba(0, 180, 216, 0.12);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .param-group {
+    margin-top: 12px;
+  }
+
+  .param-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .param-row label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    min-width: 80px;
+  }
+
+  .param-row .input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .param-row input[type="number"] {
+    width: 90px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 13px;
+    padding: 5px 8px;
+    text-align: right;
+  }
+
+  .param-row input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+  }
+
+  .param-row .unit {
+    font-size: 10px;
+    color: var(--text-muted);
+    min-width: 24px;
+  }
+
+  .coeff-section {
+    margin-top: 16px;
+  }
+
+  .coeff-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2px 10px;
+    font-size: 12px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+  }
+
+  .coeff-label {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .coeff-value {
+    color: var(--text-primary);
+    text-align: right;
+    user-select: all;
+  }
+
+  .tf-display {
+    margin-top: 10px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    text-align: center;
+  }
+
+  .tf-display .num, .tf-display .den {
+    color: var(--text-primary);
+    font-size: 12px;
+  }
+
+  .tf-display .frac-line {
+    border-top: 1px solid var(--text-muted);
+    margin: 4px 20px;
+  }
+
+  .main-area {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+  }
+
+  .plot-tabs {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .plot-tab {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 11px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .plot-tab:hover {
+    color: var(--text-primary);
+    border-color: var(--accent-dim);
+  }
+
+  .plot-tab.active {
+    background: rgba(0, 180, 216, 0.12);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .plot-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+  }
+
+  .plot-panel {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    flex: 1;
+    min-height: 250px;
+    display: none;
+    flex-direction: column;
+  }
+
+  .plot-panel.visible {
+    display: flex;
+  }
+
+  .plot-panel h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .canvas-wrap {
+    flex: 1;
+    position: relative;
+    min-height: 200px;
+  }
+
+  .canvas-wrap canvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .plot-info {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .plot-info span { color: var(--text-secondary); }
+
+  .pz-canvas-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    position: relative;
+  }
+
+  .pz-canvas-wrap canvas {
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .preset-btns {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .preset-btn {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 10px;
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .preset-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--accent-dim);
+  }
+
+  .copy-btn {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 10px;
+    padding: 4px 10px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.15s;
+  }
+
+  .copy-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .stability-badge {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-top: 8px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .stability-badge.stable {
+    background: rgba(81, 207, 102, 0.15);
+    color: var(--accent3);
+    border: 1px solid rgba(81, 207, 102, 0.3);
+  }
+
+  .stability-badge.unstable {
+    background: rgba(255, 107, 107, 0.15);
+    color: var(--accent2);
+    border: 1px solid rgba(255, 107, 107, 0.3);
+  }
+
+  input[type="number"]:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(0, 180, 216, 0.15);
+  }
+
+  .cursor-info {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: rgba(15, 25, 35, 0.9);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    pointer-events: none;
+    z-index: 10;
+    display: none;
+  }
+
+  .cursor-info.visible { display: block; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .app-layout {
+      grid-template-columns: 1fr;
+    }
+    .sidebar {
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      max-height: 45vh;
+      overflow-y: auto;
+    }
+    header { padding: 10px 14px; }
+  }
+
+  @media (max-width: 480px) {
+    .filter-types { grid-template-columns: 1fr 1fr 1fr; }
+    .filter-btn { font-size: 10px; padding: 5px 4px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+      <rect x="1" y="1" width="26" height="26" rx="6" stroke="#00b4d8" stroke-width="1.5"/>
+      <path d="M4 18 Q7 8, 10 14 T16 12 T22 14 T26 10" stroke="#00b4d8" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M4 20 Q8 22, 12 18 T20 20 T26 16" stroke="#ff6b6b" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.5"/>
+    </svg>
+    <div>
+      <h1>Biquad Filter Designer</h1>
+      <span>Second-order IIR filter calculator</span>
+    </div>
+  </div>
+  <div class="sample-rate-group">
+    <label>Fs</label>
+    <input type="number" id="sampleRate" value="48000" min="1" max="384000" step="1">
+    <span class="unit">Hz</span>
+    <span class="ts-display" id="tsDisplay">Ts = 20.833 &mu;s</span>
+  </div>
+</header>
+
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="section-title">Filter Type</div>
+    <div class="filter-types" id="filterTypes">
+      <button class="filter-btn active" data-type="lpf">LPF</button>
+      <button class="filter-btn" data-type="hpf">HPF</button>
+      <button class="filter-btn" data-type="bpf">BPF</button>
+      <button class="filter-btn" data-type="bpf0">BPF (0dB)</button>
+      <button class="filter-btn" data-type="notch">Notch</button>
+      <button class="filter-btn" data-type="apf">APF</button>
+      <button class="filter-btn" data-type="peak">Peaking EQ</button>
+      <button class="filter-btn" data-type="lowshelf">Low Shelf</button>
+      <button class="filter-btn" data-type="highshelf">High Shelf</button>
+    </div>
+
+    <div class="section-title">Parameters</div>
+    <div class="param-group">
+      <div class="param-row">
+        <label>Frequency</label>
+        <div class="input-wrap">
+          <input type="number" id="freq" value="1000" min="1" max="192000" step="1">
+          <span class="unit">Hz</span>
+        </div>
+      </div>
+      <div class="param-row">
+        <label>Q Factor</label>
+        <div class="input-wrap">
+          <input type="number" id="qFactor" value="0.7071" min="0.01" max="100" step="0.001">
+          <span class="unit"></span>
+        </div>
+      </div>
+      <div class="param-row" id="gainRow">
+        <label>Gain</label>
+        <div class="input-wrap">
+          <input type="number" id="gain" value="6" min="-40" max="40" step="0.1">
+          <span class="unit">dB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Q Presets</div>
+    <div class="preset-btns">
+      <button class="preset-btn" data-q="0.5">0.5</button>
+      <button class="preset-btn" data-q="0.7071">1/&radic;2</button>
+      <button class="preset-btn" data-q="1">1.0</button>
+      <button class="preset-btn" data-q="2">2.0</button>
+      <button class="preset-btn" data-q="5">5.0</button>
+      <button class="preset-btn" data-q="10">10</button>
+      <button class="preset-btn" data-q="20">20</button>
+    </div>
+
+    <div class="section-title">Coefficients (normalized)</div>
+    <div class="coeff-section">
+      <div class="coeff-grid" id="coeffDisplay">
+        <span class="coeff-label">b0</span><span class="coeff-value" id="c_b0">—</span>
+        <span class="coeff-label">b1</span><span class="coeff-value" id="c_b1">—</span>
+        <span class="coeff-label">b2</span><span class="coeff-value" id="c_b2">—</span>
+        <span class="coeff-label">a1</span><span class="coeff-value" id="c_a1">—</span>
+        <span class="coeff-label">a2</span><span class="coeff-value" id="c_a2">—</span>
+      </div>
+      <button class="copy-btn" id="copyCoeffs">Copy Coefficients</button>
+      <div id="stabilityBadge" class="stability-badge stable">STABLE</div>
+    </div>
+
+    <div class="section-title">Transfer Function</div>
+    <div class="tf-display" id="tfDisplay">
+      <div class="num">H(z)</div>
+    </div>
+  </aside>
+
+  <main class="main-area">
+    <div class="plot-tabs">
+      <button class="plot-tab active" data-plot="magnitude">Magnitude</button>
+      <button class="plot-tab" data-plot="phase">Phase</button>
+      <button class="plot-tab" data-plot="group-delay">Group Delay</button>
+      <button class="plot-tab" data-plot="pole-zero">Pole-Zero</button>
+      <button class="plot-tab" data-plot="impulse">Impulse Response</button>
+      <button class="plot-tab" data-plot="step">Step Response</button>
+      <button class="plot-tab" data-plot="combined">Mag + Phase</button>
+    </div>
+
+    <div class="plot-container">
+      <!-- Magnitude -->
+      <div class="plot-panel visible" id="panel-magnitude">
+        <h3>Magnitude Response</h3>
+        <div class="canvas-wrap">
+          <canvas id="canvas-magnitude"></canvas>
+          <div class="cursor-info" id="cursor-magnitude"></div>
+        </div>
+        <div class="plot-info" id="info-magnitude"></div>
+      </div>
+
+      <!-- Phase -->
+      <div class="plot-panel" id="panel-phase">
+        <h3>Phase Response</h3>
+        <div class="canvas-wrap">
+          <canvas id="canvas-phase"></canvas>
+          <div class="cursor-info" id="cursor-phase"></div>
+        </div>
+      </div>
+
+      <!-- Group Delay -->
+      <div class="plot-panel" id="panel-group-delay">
+        <h3>Group Delay</h3>
+        <div class="canvas-wrap">
+          <canvas id="canvas-group-delay"></canvas>
+          <div class="cursor-info" id="cursor-group-delay"></div>
+        </div>
+      </div>
+
+      <!-- Pole-Zero -->
+      <div class="plot-panel" id="panel-pole-zero">
+        <h3>Pole-Zero Map</h3>
+        <div class="pz-canvas-wrap">
+          <canvas id="canvas-pole-zero" width="500" height="500"></canvas>
+        </div>
+      </div>
+
+      <!-- Impulse -->
+      <div class="plot-panel" id="panel-impulse">
+        <h3>Impulse Response</h3>
+        <div class="canvas-wrap">
+          <canvas id="canvas-impulse"></canvas>
+          <div class="cursor-info" id="cursor-impulse"></div>
+        </div>
+      </div>
+
+      <!-- Step -->
+      <div class="plot-panel" id="panel-step">
+        <h3>Step Response</h3>
+        <div class="canvas-wrap">
+          <canvas id="canvas-step"></canvas>
+          <div class="cursor-info" id="cursor-step"></div>
+        </div>
+      </div>
+
+      <!-- Combined -->
+      <div class="plot-panel" id="panel-combined">
+        <h3>Magnitude + Phase Response</h3>
+        <div class="canvas-wrap">
+          <canvas id="canvas-combined"></canvas>
+          <div class="cursor-info" id="cursor-combined"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ============================================================
+//  Biquad Filter Designer — Core Engine
+//  Based on: Robert Bristow-Johnson's Audio EQ Cookbook
+// ============================================================
+
+const FILTER_DESCRIPTIONS = {
+  lpf: 'Low-Pass Filter',
+  hpf: 'High-Pass Filter',
+  bpf: 'Band-Pass (const. skirt)',
+  bpf0: 'Band-Pass (0 dB peak)',
+  notch: 'Notch (Band-Reject)',
+  apf: 'All-Pass Filter',
+  peak: 'Peaking EQ',
+  lowshelf: 'Low Shelf',
+  highshelf: 'High Shelf'
+};
+
+const GAIN_FILTERS = new Set(['peak', 'lowshelf', 'highshelf']);
+
+// ---- State ----
+let state = {
+  filterType: 'lpf',
+  freq: 1000,
+  Q: 0.7071,
+  gain: 6,
+  Fs: 48000,
+  activePlot: 'magnitude'
+};
+
+let coeffs = { b0: 0, b1: 0, b2: 0, a0: 1, a1: 0, a2: 0 };
+let normCoeffs = { b0: 0, b1: 0, b2: 0, a1: 0, a2: 0 };
+
+// ---- Coefficient Calculation (Audio EQ Cookbook) ----
+function calcCoefficients(type, fc, Q, dBgain, Fs) {
+  const w0 = 2 * Math.PI * fc / Fs;
+  const cosw0 = Math.cos(w0);
+  const sinw0 = Math.sin(w0);
+  const alpha = sinw0 / (2 * Q);
+  const A = Math.pow(10, dBgain / 40);
+  const sqrtA2alpha = 2 * Math.sqrt(A) * alpha;
+
+  let b0, b1, b2, a0, a1, a2;
+
+  switch (type) {
+    case 'lpf':
+      b0 = (1 - cosw0) / 2;
+      b1 = 1 - cosw0;
+      b2 = (1 - cosw0) / 2;
+      a0 = 1 + alpha;
+      a1 = -2 * cosw0;
+      a2 = 1 - alpha;
+      break;
+    case 'hpf':
+      b0 = (1 + cosw0) / 2;
+      b1 = -(1 + cosw0);
+      b2 = (1 + cosw0) / 2;
+      a0 = 1 + alpha;
+      a1 = -2 * cosw0;
+      a2 = 1 - alpha;
+      break;
+    case 'bpf':
+      b0 = Q * alpha;
+      b1 = 0;
+      b2 = -Q * alpha;
+      a0 = 1 + alpha;
+      a1 = -2 * cosw0;
+      a2 = 1 - alpha;
+      break;
+    case 'bpf0':
+      b0 = alpha;
+      b1 = 0;
+      b2 = -alpha;
+      a0 = 1 + alpha;
+      a1 = -2 * cosw0;
+      a2 = 1 - alpha;
+      break;
+    case 'notch':
+      b0 = 1;
+      b1 = -2 * cosw0;
+      b2 = 1;
+      a0 = 1 + alpha;
+      a1 = -2 * cosw0;
+      a2 = 1 - alpha;
+      break;
+    case 'apf':
+      b0 = 1 - alpha;
+      b1 = -2 * cosw0;
+      b2 = 1 + alpha;
+      a0 = 1 + alpha;
+      a1 = -2 * cosw0;
+      a2 = 1 - alpha;
+      break;
+    case 'peak':
+      b0 = 1 + alpha * A;
+      b1 = -2 * cosw0;
+      b2 = 1 - alpha * A;
+      a0 = 1 + alpha / A;
+      a1 = -2 * cosw0;
+      a2 = 1 - alpha / A;
+      break;
+    case 'lowshelf':
+      b0 = A * ((A + 1) - (A - 1) * cosw0 + sqrtA2alpha);
+      b1 = 2 * A * ((A - 1) - (A + 1) * cosw0);
+      b2 = A * ((A + 1) - (A - 1) * cosw0 - sqrtA2alpha);
+      a0 = (A + 1) + (A - 1) * cosw0 + sqrtA2alpha;
+      a1 = -2 * ((A - 1) + (A + 1) * cosw0);
+      a2 = (A + 1) + (A - 1) * cosw0 - sqrtA2alpha;
+      break;
+    case 'highshelf':
+      b0 = A * ((A + 1) + (A - 1) * cosw0 + sqrtA2alpha);
+      b1 = -2 * A * ((A - 1) + (A + 1) * cosw0);
+      b2 = A * ((A + 1) + (A - 1) * cosw0 - sqrtA2alpha);
+      a0 = (A + 1) - (A - 1) * cosw0 + sqrtA2alpha;
+      a1 = 2 * ((A - 1) - (A + 1) * cosw0);
+      a2 = (A + 1) - (A - 1) * cosw0 - sqrtA2alpha;
+      break;
+  }
+
+  return { b0, b1, b2, a0, a1, a2 };
+}
+
+function normalizeCoeffs(c) {
+  return {
+    b0: c.b0 / c.a0,
+    b1: c.b1 / c.a0,
+    b2: c.b2 / c.a0,
+    a1: c.a1 / c.a0,
+    a2: c.a2 / c.a0
+  };
+}
+
+// ---- Frequency Response ----
+function freqResponse(nc, freqs, Fs) {
+  const mag = new Float64Array(freqs.length);
+  const phase = new Float64Array(freqs.length);
+  const groupDelay = new Float64Array(freqs.length);
+
+  for (let i = 0; i < freqs.length; i++) {
+    const w = 2 * Math.PI * freqs[i] / Fs;
+    const cw = Math.cos(w), sw = Math.sin(w);
+    const c2w = Math.cos(2 * w), s2w = Math.sin(2 * w);
+
+    // Numerator: b0 + b1*e^{-jw} + b2*e^{-2jw}
+    const numR = nc.b0 + nc.b1 * cw + nc.b2 * c2w;
+    const numI = -(nc.b1 * sw + nc.b2 * s2w);
+
+    // Denominator: 1 + a1*e^{-jw} + a2*e^{-2jw}
+    const denR = 1 + nc.a1 * cw + nc.a2 * c2w;
+    const denI = -(nc.a1 * sw + nc.a2 * s2w);
+
+    const denMag2 = denR * denR + denI * denI;
+    const hR = (numR * denR + numI * denI) / denMag2;
+    const hI = (numI * denR - numR * denI) / denMag2;
+
+    mag[i] = 20 * Math.log10(Math.sqrt(hR * hR + hI * hI) + 1e-30);
+    phase[i] = Math.atan2(hI, hR) * 180 / Math.PI;
+
+    // Group delay via finite difference
+    const dw = 1e-6;
+    const wp = w + dw;
+    const cwp = Math.cos(wp), swp = Math.sin(wp);
+    const c2wp = Math.cos(2 * wp), s2wp = Math.sin(2 * wp);
+    const nRp = nc.b0 + nc.b1 * cwp + nc.b2 * c2wp;
+    const nIp = -(nc.b1 * swp + nc.b2 * s2wp);
+    const dRp = 1 + nc.a1 * cwp + nc.a2 * c2wp;
+    const dIp = -(nc.a1 * swp + nc.a2 * s2wp);
+    const dM2p = dRp * dRp + dIp * dIp;
+    const hRp = (nRp * dRp + nIp * dIp) / dM2p;
+    const hIp = (nIp * dRp - nRp * dIp) / dM2p;
+    const phaseP = Math.atan2(hIp, hRp);
+    const phaseC = Math.atan2(hI, hR);
+
+    let dp = phaseP - phaseC;
+    if (dp > Math.PI) dp -= 2 * Math.PI;
+    if (dp < -Math.PI) dp += 2 * Math.PI;
+    groupDelay[i] = -dp / dw;
+  }
+
+  return { mag, phase, groupDelay };
+}
+
+// ---- Poles & Zeros ----
+function polesAndZeros(nc) {
+  // Zeros: roots of b0*z^2 + b1*z + b2 = 0
+  // Poles: roots of z^2 + a1*z + a2 = 0
+  function roots(a, b, c) {
+    const disc = b * b - 4 * a * c;
+    if (disc >= 0) {
+      const sd = Math.sqrt(disc);
+      return [
+        { re: (-b + sd) / (2 * a), im: 0 },
+        { re: (-b - sd) / (2 * a), im: 0 }
+      ];
+    } else {
+      const sd = Math.sqrt(-disc);
+      return [
+        { re: -b / (2 * a), im: sd / (2 * a) },
+        { re: -b / (2 * a), im: -sd / (2 * a) }
+      ];
+    }
+  }
+
+  return {
+    zeros: roots(nc.b0, nc.b1, nc.b2),
+    poles: roots(1, nc.a1, nc.a2)
+  };
+}
+
+function isStable(nc) {
+  const pz = polesAndZeros(nc);
+  return pz.poles.every(p => Math.sqrt(p.re * p.re + p.im * p.im) < 1);
+}
+
+// ---- Impulse / Step Response ----
+function timeResponse(nc, N) {
+  const impulse = new Float64Array(N);
+  const step = new Float64Array(N);
+
+  // Direct Form I
+  let x0 = 0, x1 = 0, x2 = 0;
+  let iy1 = 0, iy2 = 0;
+  let sx0 = 0, sx1 = 0, sx2 = 0;
+  let sy1 = 0, sy2 = 0;
+
+  for (let n = 0; n < N; n++) {
+    // Impulse
+    x0 = (n === 0) ? 1 : 0;
+    impulse[n] = nc.b0 * x0 + nc.b1 * x1 + nc.b2 * x2 - nc.a1 * iy1 - nc.a2 * iy2;
+    x2 = x1; x1 = x0;
+    iy2 = iy1; iy1 = impulse[n];
+
+    // Step
+    sx0 = 1;
+    step[n] = nc.b0 * sx0 + nc.b1 * sx1 + nc.b2 * sx2 - nc.a1 * sy1 - nc.a2 * sy2;
+    sx2 = sx1; sx1 = sx0;
+    sy2 = sy1; sy1 = step[n];
+  }
+
+  return { impulse, step };
+}
+
+// ---- Log-spaced frequency array ----
+function logFreqs(fMin, fMax, N) {
+  const arr = new Float64Array(N);
+  const logMin = Math.log10(fMin);
+  const logMax = Math.log10(fMax);
+  for (let i = 0; i < N; i++) {
+    arr[i] = Math.pow(10, logMin + (logMax - logMin) * i / (N - 1));
+  }
+  return arr;
+}
+
+// ============================================================
+//  Plotting Engine
+// ============================================================
+
+const dpr = window.devicePixelRatio || 1;
+
+function setupCanvas(canvas) {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const w = rect.width;
+  const h = rect.height;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  return { ctx, w, h };
+}
+
+const MARGIN = { top: 20, right: 30, bottom: 40, left: 56 };
+
+function plotGrid(ctx, w, h, xTicks, yTicks, xLabel, yLabel, logX) {
+  const { top, right, bottom, left } = MARGIN;
+  const pw = w - left - right;
+  const ph = h - top - bottom;
+
+  // Background
+  ctx.fillStyle = '#0d1520';
+  ctx.fillRect(left, top, pw, ph);
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(42, 64, 85, 0.4)';
+  ctx.lineWidth = 0.5;
+
+  // Y grid
+  const yMin = yTicks[0], yMax = yTicks[yTicks.length - 1];
+  for (const yt of yTicks) {
+    const y = top + ph * (1 - (yt - yMin) / (yMax - yMin));
+    ctx.beginPath();
+    ctx.moveTo(left, y);
+    ctx.lineTo(left + pw, y);
+    ctx.stroke();
+
+    ctx.fillStyle = '#5a6f82';
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(yt.toFixed(yTicks.some(t => t % 1 !== 0) ? 1 : 0), left - 6, y);
+  }
+
+  // X grid
+  const xMin = xTicks[0], xMax = xTicks[xTicks.length - 1];
+  for (const xt of xTicks) {
+    let x;
+    if (logX) {
+      x = left + pw * (Math.log10(xt) - Math.log10(xMin)) / (Math.log10(xMax) - Math.log10(xMin));
+    } else {
+      x = left + pw * (xt - xMin) / (xMax - xMin);
+    }
+    ctx.beginPath();
+    ctx.moveTo(x, top);
+    ctx.lineTo(x, top + ph);
+    ctx.stroke();
+
+    ctx.fillStyle = '#5a6f82';
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    let label;
+    if (xt >= 1000) label = (xt / 1000) + 'k';
+    else label = xt.toString();
+    ctx.fillText(label, x, top + ph + 6);
+  }
+
+  // Zero line for magnitude/phase
+  if (yMin < 0 && yMax > 0) {
+    const y0 = top + ph * (1 - (0 - yMin) / (yMax - yMin));
+    ctx.strokeStyle = 'rgba(42, 64, 85, 0.9)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(left, y0);
+    ctx.lineTo(left + pw, y0);
+    ctx.stroke();
+  }
+
+  // Axis labels
+  ctx.fillStyle = '#5a6f82';
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(xLabel, left + pw / 2, h - 4);
+
+  ctx.save();
+  ctx.translate(12, top + ph / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText(yLabel, 0, 0);
+  ctx.restore();
+
+  // Border
+  ctx.strokeStyle = 'rgba(42, 64, 85, 0.9)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(left, top, pw, ph);
+
+  return { pw, ph, xMin, xMax, yMin, yMax };
+}
+
+function plotLine(ctx, freqs, values, w, h, grid, color, lineWidth, logX) {
+  const { top, left } = MARGIN;
+  const { pw, ph, xMin, xMax, yMin, yMax } = grid;
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth || 2;
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+
+  let started = false;
+  for (let i = 0; i < freqs.length; i++) {
+    let x;
+    if (logX) {
+      x = left + pw * (Math.log10(freqs[i]) - Math.log10(xMin)) / (Math.log10(xMax) - Math.log10(xMin));
+    } else {
+      x = left + pw * (freqs[i] - xMin) / (xMax - xMin);
+    }
+    let val = values[i];
+    val = Math.max(yMin, Math.min(yMax, val));
+    const y = top + ph * (1 - (val - yMin) / (yMax - yMin));
+
+    if (!started) { ctx.moveTo(x, y); started = true; }
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+}
+
+function getLogFreqTicks(fMin, fMax) {
+  const ticks = [];
+  const decades = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000];
+  for (const d of decades) {
+    if (d >= fMin && d <= fMax) ticks.push(d);
+  }
+  return ticks;
+}
+
+function getMagYTicks(magData) {
+  let min = Infinity, max = -Infinity;
+  for (let i = 0; i < magData.length; i++) {
+    if (isFinite(magData[i])) {
+      if (magData[i] < min) min = magData[i];
+      if (magData[i] > max) max = magData[i];
+    }
+  }
+  min = Math.floor(min / 6) * 6 - 6;
+  max = Math.ceil(max / 6) * 6 + 6;
+  min = Math.max(min, -80);
+  max = Math.min(max, 80);
+  if (max - min < 12) { min -= 6; max += 6; }
+
+  const ticks = [];
+  for (let v = min; v <= max; v += 6) ticks.push(v);
+  return ticks;
+}
+
+// ============================================================
+//  Plot Functions
+// ============================================================
+
+function plotMagnitude(freqs, response) {
+  const canvas = document.getElementById('canvas-magnitude');
+  const { ctx, w, h } = setupCanvas(canvas);
+  const fMin = freqs[0], fMax = freqs[freqs.length - 1];
+  const xTicks = getLogFreqTicks(fMin, fMax);
+  const yTicks = getMagYTicks(response.mag);
+  const grid = plotGrid(ctx, w, h, xTicks, yTicks, 'Frequency (Hz)', 'Magnitude (dB)', true);
+  plotLine(ctx, freqs, response.mag, w, h, grid, '#00b4d8', 2, true);
+
+  // Show fc marker
+  const fc = state.freq;
+  if (fc >= fMin && fc <= fMax) {
+    const { top, left } = MARGIN;
+    const x = left + grid.pw * (Math.log10(fc) - Math.log10(grid.xMin)) / (Math.log10(grid.xMax) - Math.log10(grid.xMin));
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = 'rgba(255, 212, 59, 0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x, MARGIN.top);
+    ctx.lineTo(x, MARGIN.top + grid.ph);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Info
+  const info = document.getElementById('info-magnitude');
+  const dcGain = response.mag[0];
+  const nyquistGain = response.mag[response.mag.length - 1];
+  info.innerHTML = `DC: <span>${dcGain.toFixed(2)} dB</span> &nbsp; Nyquist: <span>${nyquistGain.toFixed(2)} dB</span> &nbsp; f<sub>c</sub>: <span>${state.freq} Hz</span>`;
+}
+
+function plotPhase(freqs, response) {
+  const canvas = document.getElementById('canvas-phase');
+  const { ctx, w, h } = setupCanvas(canvas);
+  const fMin = freqs[0], fMax = freqs[freqs.length - 1];
+  const xTicks = getLogFreqTicks(fMin, fMax);
+  const yTicks = [-180, -135, -90, -45, 0, 45, 90, 135, 180];
+  const grid = plotGrid(ctx, w, h, xTicks, yTicks, 'Frequency (Hz)', 'Phase (deg)', true);
+  plotLine(ctx, freqs, response.phase, w, h, grid, '#ff6b6b', 2, true);
+}
+
+function plotGroupDelay(freqs, response) {
+  const canvas = document.getElementById('canvas-group-delay');
+  const { ctx, w, h } = setupCanvas(canvas);
+  const fMin = freqs[0], fMax = freqs[freqs.length - 1];
+  const xTicks = getLogFreqTicks(fMin, fMax);
+
+  // Auto-range group delay
+  let gdMin = Infinity, gdMax = -Infinity;
+  for (let i = 0; i < response.groupDelay.length; i++) {
+    const v = response.groupDelay[i];
+    if (isFinite(v) && Math.abs(v) < 1000) {
+      if (v < gdMin) gdMin = v;
+      if (v > gdMax) gdMax = v;
+    }
+  }
+  if (!isFinite(gdMin)) { gdMin = -1; gdMax = 10; }
+  const range = gdMax - gdMin || 1;
+  gdMin = gdMin - range * 0.1;
+  gdMax = gdMax + range * 0.1;
+
+  const steps = 6;
+  const step = (gdMax - gdMin) / steps;
+  const yTicks = [];
+  for (let i = 0; i <= steps; i++) {
+    yTicks.push(gdMin + step * i);
+  }
+
+  const grid = plotGrid(ctx, w, h, xTicks, yTicks, 'Frequency (Hz)', 'Samples', true);
+  const clipped = new Float64Array(response.groupDelay.length);
+  for (let i = 0; i < clipped.length; i++) {
+    clipped[i] = Math.max(gdMin, Math.min(gdMax, response.groupDelay[i]));
+  }
+  plotLine(ctx, freqs, clipped, w, h, grid, '#51cf66', 2, true);
+}
+
+function plotPoleZero() {
+  const canvas = document.getElementById('canvas-pole-zero');
+  const size = Math.min(
+    canvas.parentElement.getBoundingClientRect().width,
+    canvas.parentElement.getBoundingClientRect().height,
+    500
+  );
+  canvas.width = size * dpr;
+  canvas.height = size * dpr;
+  canvas.style.width = size + 'px';
+  canvas.style.height = size + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const cx = size / 2, cy = size / 2;
+  const r = size * 0.38;
+
+  // Background
+  ctx.fillStyle = '#0d1520';
+  ctx.fillRect(0, 0, size, size);
+
+  // Unit circle
+  ctx.strokeStyle = 'rgba(42, 64, 85, 0.9)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+  ctx.stroke();
+
+  // Axes
+  ctx.strokeStyle = 'rgba(42, 64, 85, 0.5)';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(cx - r - 20, cy); ctx.lineTo(cx + r + 20, cy);
+  ctx.moveTo(cx, cy - r - 20); ctx.lineTo(cx, cy + r + 20);
+  ctx.stroke();
+
+  // Grid circles at 0.5
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 0.5, 0, 2 * Math.PI);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Labels
+  ctx.fillStyle = '#5a6f82';
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('Re', cx + r + 16, cy - 4);
+  ctx.fillText('Im', cx + 4, cy - r - 8);
+  ctx.fillText('1', cx + r, cy + 14);
+  ctx.fillText('-1', cx - r, cy + 14);
+
+  const pz = polesAndZeros(normCoeffs);
+
+  // Zeros (circles)
+  ctx.strokeStyle = '#00b4d8';
+  ctx.lineWidth = 2;
+  for (const z of pz.zeros) {
+    const x = cx + z.re * r;
+    const y = cy - z.im * r;
+    ctx.beginPath();
+    ctx.arc(x, y, 6, 0, 2 * Math.PI);
+    ctx.stroke();
+  }
+
+  // Poles (crosses)
+  ctx.strokeStyle = '#ff6b6b';
+  ctx.lineWidth = 2;
+  for (const p of pz.poles) {
+    const x = cx + p.re * r;
+    const y = cy - p.im * r;
+    ctx.beginPath();
+    ctx.moveTo(x - 6, y - 6); ctx.lineTo(x + 6, y + 6);
+    ctx.moveTo(x + 6, y - 6); ctx.lineTo(x - 6, y + 6);
+    ctx.stroke();
+  }
+
+  // Legend
+  ctx.fillStyle = '#5a6f82';
+  ctx.font = '11px monospace';
+  ctx.textAlign = 'left';
+  ctx.strokeStyle = '#00b4d8';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(20, size - 30, 5, 0, 2 * Math.PI);
+  ctx.stroke();
+  ctx.fillText('Zeros', 32, size - 26);
+
+  ctx.strokeStyle = '#ff6b6b';
+  ctx.beginPath();
+  ctx.moveTo(14, size - 16); ctx.lineTo(26, size - 4);
+  ctx.moveTo(26, size - 16); ctx.lineTo(14, size - 4);
+  ctx.stroke();
+  ctx.fillText('Poles', 32, size - 6);
+}
+
+function plotImpulseResponse() {
+  const N = 64;
+  const { impulse } = timeResponse(normCoeffs, N);
+  const canvas = document.getElementById('canvas-impulse');
+  const { ctx, w, h } = setupCanvas(canvas);
+
+  let yMin = Infinity, yMax = -Infinity;
+  for (let i = 0; i < N; i++) {
+    if (impulse[i] < yMin) yMin = impulse[i];
+    if (impulse[i] > yMax) yMax = impulse[i];
+  }
+  const range = yMax - yMin || 1;
+  yMin -= range * 0.15;
+  yMax += range * 0.15;
+
+  const xTicks = [0, 10, 20, 30, 40, 50, 60];
+  const steps = 6;
+  const step = (yMax - yMin) / steps;
+  const yTicks = [];
+  for (let i = 0; i <= steps; i++) yTicks.push(yMin + step * i);
+
+  const grid = plotGrid(ctx, w, h, xTicks, yTicks, 'Sample n', 'Amplitude', false);
+  const { top, left } = MARGIN;
+
+  // Stem plot
+  const zeroY = top + grid.ph * (1 - (0 - grid.yMin) / (grid.yMax - grid.yMin));
+  ctx.strokeStyle = 'rgba(0, 180, 216, 0.3)';
+  ctx.lineWidth = 1;
+
+  const ns = [];
+  for (let i = 0; i < N; i++) ns.push(i);
+
+  for (let i = 0; i < N; i++) {
+    const x = left + grid.pw * (i / (N - 1));
+    const val = Math.max(grid.yMin, Math.min(grid.yMax, impulse[i]));
+    const y = top + grid.ph * (1 - (val - grid.yMin) / (grid.yMax - grid.yMin));
+
+    ctx.beginPath();
+    ctx.moveTo(x, zeroY);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+
+    ctx.fillStyle = '#00b4d8';
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, 2 * Math.PI);
+    ctx.fill();
+  }
+}
+
+function plotStepResponse() {
+  const N = 64;
+  const { step } = timeResponse(normCoeffs, N);
+  const canvas = document.getElementById('canvas-step');
+  const { ctx, w, h } = setupCanvas(canvas);
+
+  let yMin = Infinity, yMax = -Infinity;
+  for (let i = 0; i < N; i++) {
+    if (step[i] < yMin) yMin = step[i];
+    if (step[i] > yMax) yMax = step[i];
+  }
+  const range = yMax - yMin || 1;
+  yMin -= range * 0.15;
+  yMax += range * 0.15;
+
+  const xTicks = [0, 10, 20, 30, 40, 50, 60];
+  const steps2 = 6;
+  const stepSize = (yMax - yMin) / steps2;
+  const yTicks = [];
+  for (let i = 0; i <= steps2; i++) yTicks.push(yMin + stepSize * i);
+
+  const grid = plotGrid(ctx, w, h, xTicks, yTicks, 'Sample n', 'Amplitude', false);
+
+  const ns = [];
+  for (let i = 0; i < N; i++) ns.push(i);
+  plotLine(ctx, ns, step, w, h, grid, '#ffd43b', 2, false);
+
+  // Dots
+  const { top, left } = MARGIN;
+  ctx.fillStyle = '#ffd43b';
+  for (let i = 0; i < N; i++) {
+    const x = left + grid.pw * (i / (N - 1));
+    const val = Math.max(grid.yMin, Math.min(grid.yMax, step[i]));
+    const y = top + grid.ph * (1 - (val - grid.yMin) / (grid.yMax - grid.yMin));
+    ctx.beginPath();
+    ctx.arc(x, y, 2, 0, 2 * Math.PI);
+    ctx.fill();
+  }
+}
+
+function plotCombined(freqs, response) {
+  const canvas = document.getElementById('canvas-combined');
+  const { ctx, w, h } = setupCanvas(canvas);
+  const fMin = freqs[0], fMax = freqs[freqs.length - 1];
+  const xTicks = getLogFreqTicks(fMin, fMax);
+  const yTicks = getMagYTicks(response.mag);
+  const grid = plotGrid(ctx, w, h, xTicks, yTicks, 'Frequency (Hz)', 'Magnitude (dB)', true);
+  plotLine(ctx, freqs, response.mag, w, h, grid, '#00b4d8', 2, true);
+
+  // Overlay phase with secondary axis
+  const { top, left } = MARGIN;
+  ctx.strokeStyle = 'rgba(255, 107, 107, 0.6)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  let started = false;
+  for (let i = 0; i < freqs.length; i++) {
+    const x = left + grid.pw * (Math.log10(freqs[i]) - Math.log10(grid.xMin)) / (Math.log10(grid.xMax) - Math.log10(grid.xMin));
+    const phaseNorm = (response.phase[i] + 180) / 360;
+    const y = top + grid.ph * (1 - phaseNorm);
+    if (!started) { ctx.moveTo(x, y); started = true; }
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Phase axis labels on right
+  ctx.fillStyle = 'rgba(255, 107, 107, 0.6)';
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'left';
+  const phaseLabels = [180, 90, 0, -90, -180];
+  for (const pl of phaseLabels) {
+    const phaseNorm = (pl + 180) / 360;
+    const y = top + grid.ph * (1 - phaseNorm);
+    ctx.fillText(pl + '°', left + grid.pw + 4, y + 3);
+  }
+
+  // Legend
+  ctx.font = '10px monospace';
+  ctx.fillStyle = '#00b4d8';
+  ctx.fillText('Magnitude', left + 8, top + 14);
+  ctx.fillStyle = 'rgba(255, 107, 107, 0.6)';
+  ctx.fillText('Phase', left + 8, top + 26);
+}
+
+// ============================================================
+//  Cursor Tracking
+// ============================================================
+
+function addCursorTracking(canvasId, cursorId, freqs, dataFn, unit, logX) {
+  const canvas = document.getElementById(canvasId);
+  const cursorEl = document.getElementById(cursorId);
+
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const { left, top } = MARGIN;
+    const pw = rect.width - left - MARGIN.right;
+    const ph = rect.height - top - MARGIN.bottom;
+
+    if (mx < left || mx > left + pw) {
+      cursorEl.classList.remove('visible');
+      return;
+    }
+
+    const frac = (mx - left) / pw;
+    let freq;
+    if (logX) {
+      const logMin = Math.log10(freqs[0]);
+      const logMax = Math.log10(freqs[freqs.length - 1]);
+      freq = Math.pow(10, logMin + frac * (logMax - logMin));
+    } else {
+      freq = freqs[0] + frac * (freqs[freqs.length - 1] - freqs[0]);
+    }
+
+    // Find nearest index
+    let closest = 0;
+    let minDist = Infinity;
+    for (let i = 0; i < freqs.length; i++) {
+      const d = Math.abs(freqs[i] - freq);
+      if (d < minDist) { minDist = d; closest = i; }
+    }
+
+    const data = dataFn();
+    const val = data[closest];
+    const fLabel = freq >= 1000 ? (freq / 1000).toFixed(2) + ' kHz' : freq.toFixed(1) + ' Hz';
+    cursorEl.textContent = `${fLabel}: ${val.toFixed(3)} ${unit}`;
+    cursorEl.classList.add('visible');
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+    cursorEl.classList.remove('visible');
+  });
+}
+
+// ============================================================
+//  Update Logic
+// ============================================================
+
+let cachedResponse = null;
+let cachedFreqs = null;
+
+function update() {
+  const Fs = state.Fs;
+  const fNyquist = Fs / 2;
+
+  // Clamp frequency
+  if (state.freq > fNyquist * 0.99) state.freq = Math.floor(fNyquist * 0.99);
+
+  coeffs = calcCoefficients(state.filterType, state.freq, state.Q, state.gain, Fs);
+  normCoeffs = normalizeCoeffs(coeffs);
+
+  // Update UI
+  document.getElementById('c_b0').textContent = normCoeffs.b0.toFixed(10);
+  document.getElementById('c_b1').textContent = normCoeffs.b1.toFixed(10);
+  document.getElementById('c_b2').textContent = normCoeffs.b2.toFixed(10);
+  document.getElementById('c_a1').textContent = normCoeffs.a1.toFixed(10);
+  document.getElementById('c_a2').textContent = normCoeffs.a2.toFixed(10);
+
+  const stable = isStable(normCoeffs);
+  const badge = document.getElementById('stabilityBadge');
+  badge.textContent = stable ? 'STABLE' : 'UNSTABLE';
+  badge.className = 'stability-badge ' + (stable ? 'stable' : 'unstable');
+
+  // Transfer function display
+  const tf = document.getElementById('tfDisplay');
+  const b0s = normCoeffs.b0.toFixed(6);
+  const b1s = (normCoeffs.b1 >= 0 ? ' + ' : ' - ') + Math.abs(normCoeffs.b1).toFixed(6);
+  const b2s = (normCoeffs.b2 >= 0 ? ' + ' : ' - ') + Math.abs(normCoeffs.b2).toFixed(6);
+  const a1s = (normCoeffs.a1 >= 0 ? ' + ' : ' - ') + Math.abs(normCoeffs.a1).toFixed(6);
+  const a2s = (normCoeffs.a2 >= 0 ? ' + ' : ' - ') + Math.abs(normCoeffs.a2).toFixed(6);
+  tf.innerHTML = `
+    <div class="num">${b0s}${b1s} z<sup>-1</sup>${b2s} z<sup>-2</sup></div>
+    <div class="frac-line"></div>
+    <div class="den">1${a1s} z<sup>-1</sup>${a2s} z<sup>-2</sup></div>
+  `;
+
+  // Ts display
+  const Ts = 1 / Fs;
+  let tsText;
+  if (Ts >= 1e-3) tsText = (Ts * 1e3).toFixed(3) + ' ms';
+  else tsText = (Ts * 1e6).toFixed(3) + ' \u00B5s';
+  document.getElementById('tsDisplay').innerHTML = `T<sub>s</sub> = ${tsText}`;
+
+  // Gain row visibility
+  document.getElementById('gainRow').style.display = GAIN_FILTERS.has(state.filterType) ? 'flex' : 'none';
+
+  // Frequency response
+  const fMin = Math.max(10, Fs / 100000);
+  cachedFreqs = logFreqs(fMin, fNyquist, 1024);
+  cachedResponse = freqResponse(normCoeffs, cachedFreqs, Fs);
+
+  // Draw active plot
+  drawActivePlot();
+}
+
+function drawActivePlot() {
+  switch (state.activePlot) {
+    case 'magnitude': plotMagnitude(cachedFreqs, cachedResponse); break;
+    case 'phase': plotPhase(cachedFreqs, cachedResponse); break;
+    case 'group-delay': plotGroupDelay(cachedFreqs, cachedResponse); break;
+    case 'pole-zero': plotPoleZero(); break;
+    case 'impulse': plotImpulseResponse(); break;
+    case 'step': plotStepResponse(); break;
+    case 'combined': plotCombined(cachedFreqs, cachedResponse); break;
+  }
+}
+
+// ============================================================
+//  UI Wiring
+// ============================================================
+
+// Filter type buttons
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.filterType = btn.dataset.type;
+    update();
+  });
+});
+
+// Plot tab buttons
+document.querySelectorAll('.plot-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.plot-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.plot-panel').forEach(p => p.classList.remove('visible'));
+    const panel = document.getElementById('panel-' + tab.dataset.plot);
+    panel.classList.add('visible');
+    state.activePlot = tab.dataset.plot;
+    // Small delay for layout
+    requestAnimationFrame(() => drawActivePlot());
+  });
+});
+
+// Parameter inputs
+document.getElementById('freq').addEventListener('input', (e) => {
+  state.freq = parseFloat(e.target.value) || 1000;
+  update();
+});
+
+document.getElementById('qFactor').addEventListener('input', (e) => {
+  state.Q = parseFloat(e.target.value) || 0.7071;
+  update();
+});
+
+document.getElementById('gain').addEventListener('input', (e) => {
+  state.gain = parseFloat(e.target.value) || 0;
+  update();
+});
+
+document.getElementById('sampleRate').addEventListener('input', (e) => {
+  state.Fs = parseFloat(e.target.value) || 48000;
+  update();
+});
+
+// Q presets
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const q = parseFloat(btn.dataset.q);
+    state.Q = q;
+    document.getElementById('qFactor').value = q;
+    update();
+  });
+});
+
+// Copy coefficients
+document.getElementById('copyCoeffs').addEventListener('click', () => {
+  const text = `b0 = ${normCoeffs.b0}\nb1 = ${normCoeffs.b1}\nb2 = ${normCoeffs.b2}\na1 = ${normCoeffs.a1}\na2 = ${normCoeffs.a2}`;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyCoeffs');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy Coefficients', 1500);
+  });
+});
+
+// Cursor tracking
+addCursorTracking('canvas-magnitude', 'cursor-magnitude', null, () => cachedResponse.mag, 'dB', true);
+addCursorTracking('canvas-phase', 'cursor-phase', null, () => cachedResponse.phase, 'deg', true);
+addCursorTracking('canvas-group-delay', 'cursor-group-delay', null, () => cachedResponse.groupDelay, 'samples', true);
+
+// Override cursor tracking to use cachedFreqs
+['canvas-magnitude', 'canvas-phase', 'canvas-group-delay', 'canvas-combined'].forEach(canvasId => {
+  const canvas = document.getElementById(canvasId);
+  const cursorId = canvasId.replace('canvas-', 'cursor-');
+  const cursorEl = document.getElementById(cursorId);
+  if (!cursorEl) return;
+
+  canvas.addEventListener('mousemove', (e) => {
+    if (!cachedFreqs || !cachedResponse) return;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const { left } = MARGIN;
+    const pw = rect.width - left - MARGIN.right;
+
+    if (mx < left || mx > left + pw) {
+      cursorEl.classList.remove('visible');
+      return;
+    }
+
+    const frac = (mx - left) / pw;
+    const logMin = Math.log10(cachedFreqs[0]);
+    const logMax = Math.log10(cachedFreqs[cachedFreqs.length - 1]);
+    const freq = Math.pow(10, logMin + frac * (logMax - logMin));
+
+    let closest = 0;
+    let minDist = Infinity;
+    for (let i = 0; i < cachedFreqs.length; i++) {
+      const d = Math.abs(cachedFreqs[i] - freq);
+      if (d < minDist) { minDist = d; closest = i; }
+    }
+
+    const fLabel = freq >= 1000 ? (freq / 1000).toFixed(2) + ' kHz' : freq.toFixed(1) + ' Hz';
+    let text = fLabel + ': ';
+
+    if (canvasId === 'canvas-magnitude') {
+      text += cachedResponse.mag[closest].toFixed(2) + ' dB';
+    } else if (canvasId === 'canvas-phase') {
+      text += cachedResponse.phase[closest].toFixed(1) + '\u00B0';
+    } else if (canvasId === 'canvas-group-delay') {
+      text += cachedResponse.groupDelay[closest].toFixed(3) + ' samples';
+    } else if (canvasId === 'canvas-combined') {
+      text += cachedResponse.mag[closest].toFixed(2) + ' dB / ' + cachedResponse.phase[closest].toFixed(1) + '\u00B0';
+    }
+
+    cursorEl.textContent = text;
+    cursorEl.classList.add('visible');
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+    cursorEl.classList.remove('visible');
+  });
+});
+
+// Resize handler
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => drawActivePlot(), 100);
+});
+
+// Initial render
+update();
+
+// ---- PWA Service Worker Registration ----
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
