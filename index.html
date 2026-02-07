@@ -139,8 +139,19 @@
       // Admin password for login (enables hide/unhide repos)
       ADMIN_PASSWORD: 'admin',
 
-      // Integrated apps (local copies, linked from portfolio)
+      // Sorted by engineering lifecycle: Research → Simulation → Signal & Control → Mechanical → Hardware → Ship it!
       INTEGRATED_APPS: [
+        // Research
+        {
+          id: 'datasheet-search-app',
+          name: 'Datasheets',
+          icon: 'FileSearch',
+          url: 'https://arnoutzw.github.io/datasheet-search-app/',
+          description: 'Search component datasheets',
+          isLocal: false,
+          fullscreen: true
+        },
+        // Simulation
         {
           id: 'ray-optics',
           name: 'Ray Optics',
@@ -156,6 +167,45 @@
           icon: 'Zap',
           url: 'https://www.falstad.com/circuit/circuitjs.html',
           description: 'Interactive circuit simulator',
+          isLocal: false,
+          fullscreen: true
+        },
+        // Signal & Control
+        {
+          id: 'filter-design-studio-app',
+          name: 'Filter Design Studio',
+          icon: 'AudioLines',
+          url: 'https://arnoutzw.github.io/filter-design-studio-app/',
+          description: 'Analog and digital filter design tool',
+          isLocal: false,
+          fullscreen: true
+        },
+        {
+          id: 'control-tuner-app',
+          name: 'Control Loop Tuner',
+          icon: 'Gauge',
+          url: 'https://arnoutzw.github.io/control-tuner-app/',
+          description: 'PID controller tuner with Bode plots and time-domain response',
+          isLocal: false,
+          fullscreen: true
+        },
+        // Mechanical
+        {
+          id: 'engineering-calcs-app',
+          name: 'Engineering Calculators',
+          icon: 'Wrench',
+          url: 'https://arnoutzw.github.io/engineering-calcs-app/',
+          description: 'Tribology, bearings, fatigue & machine design calculators',
+          isLocal: false,
+          fullscreen: true
+        },
+        // Hardware
+        {
+          id: 'serial-app',
+          name: 'Serial Terminal',
+          icon: 'Terminal',
+          url: 'https://arnoutzw.github.io/serial-app/',
+          description: 'Web serial terminal for communicating with devices',
           isLocal: false,
           fullscreen: true
         },
@@ -177,57 +227,13 @@
           isLocal: false,
           fullscreen: true
         },
-        {
-          id: 'engineering-calcs-app',
-          name: 'Engineering Calculators',
-          icon: 'Wrench',
-          url: 'https://arnoutzw.github.io/engineering-calcs-app/',
-          description: 'Tribology, bearings, fatigue & machine design calculators',
-          isLocal: false,
-          fullscreen: true
-        },
-        {
-          id: 'control-tuner-app',
-          name: 'Control Loop Tuner',
-          icon: 'Gauge',
-          url: 'https://arnoutzw.github.io/control-tuner-app/',
-          description: 'PID controller tuner with Bode plots and time-domain response',
-          isLocal: false,
-          fullscreen: true
-        },
+        // Ship it!
         {
           id: 'label-designer-app',
           name: 'Label Designer',
           icon: 'PenTool',
           url: 'https://arnoutzw.github.io/label-designer-app/',
           description: 'Design and print custom labels',
-          isLocal: false,
-          fullscreen: true
-        },
-        {
-          id: 'filter-design-studio-app',
-          name: 'Filter Design Studio',
-          icon: 'AudioLines',
-          url: 'https://arnoutzw.github.io/filter-design-studio-app/',
-          description: 'Analog and digital filter design tool',
-          isLocal: false,
-          fullscreen: true
-        },
-        {
-          id: 'datasheet-search-app',
-          name: 'Datasheets',
-          icon: 'FileSearch',
-          url: 'https://arnoutzw.github.io/datasheet-search-app/',
-          description: 'Search component datasheets',
-          isLocal: false,
-          fullscreen: true
-        },
-        {
-          id: 'serial-app',
-          name: 'Serial Terminal',
-          icon: 'Terminal',
-          url: 'https://arnoutzw.github.io/serial-app/',
-          description: 'Web serial terminal for communicating with devices',
           isLocal: false,
           fullscreen: true
         }
@@ -243,7 +249,7 @@
 
     // Release notes per git hash, grouped by date
     const VERSION_HISTORY = [
-      { hash: 'HEAD', date: '2026-02-07', changes: 'Add Serial Terminal app to integrated apps' },
+      { hash: 'HEAD', date: '2026-02-07', changes: 'Sort apps by engineering lifecycle and add Serial Terminal' },
       { hash: '005d933', date: '2026-02-06', changes: 'Restyle Engineering Calculators to match portfolio\'s dark zinc/amber theme' },
       { hash: 'e6a46b3', date: '2026-02-06', changes: 'Add Engineering Calculators to main page integrated apps' },
       { hash: '1a93eaf', date: '2026-02-06', changes: 'Update print label CSS to specify 40x30mm label size' },
