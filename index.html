@@ -1,1647 +1,1180 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Maker Portfolio | GitHub Projects</title>
-  <meta name="description" content="A portfolio of maker and tinkerer projects, powered by GitHub">
-
-  <!-- Favicon -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
-
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-
-  <!-- Tailwind CSS -->
+  <title>Involute Gear Generator</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#09090b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script>
-    tailwindcss.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            mono: ['JetBrains Mono', 'monospace'],
-            sans: ['Inter', 'sans-serif'],
-          }
-        }
-      }
-    }
+  tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'], mono: ['JetBrains Mono','monospace'] } } } }
   </script>
-
-  <!-- React -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-
-  <!-- Markdown Parser & Syntax Highlighting -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css">
-
   <style>
-    * { font-family: 'Inter', sans-serif; }
-    .font-mono { font-family: 'JetBrains Mono', monospace !important; }
-
-    /* Custom scrollbar */
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-track { background: #18181b; }
-    ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #52525b; }
-
-    /* Line clamp */
-    .line-clamp-2 {
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    /* Animation */
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .animate-spin { animation: spin 1s linear infinite; }
-
-    /* Markdown Prose Styles */
-    .markdown-body { color: #a1a1aa; line-height: 1.7; }
-    .markdown-body h1 { font-size: 1.875rem; font-weight: 700; color: #f59e0b; margin-top: 1.5rem; margin-bottom: 1rem; font-family: 'JetBrains Mono', monospace; border-bottom: 1px solid #3f3f46; padding-bottom: 0.5rem; }
-    .markdown-body h2 { font-size: 1.5rem; font-weight: 600; color: #fbbf24; margin-top: 1.5rem; margin-bottom: 0.75rem; font-family: 'JetBrains Mono', monospace; border-bottom: 1px solid #3f3f46; padding-bottom: 0.5rem; }
-    .markdown-body h3 { font-size: 1.25rem; font-weight: 600; color: #fcd34d; margin-top: 1.25rem; margin-bottom: 0.5rem; font-family: 'JetBrains Mono', monospace; }
-    .markdown-body h4 { font-size: 1.125rem; font-weight: 600; color: #fde68a; margin-top: 1rem; margin-bottom: 0.5rem; font-family: 'JetBrains Mono', monospace; }
-    .markdown-body p { margin-bottom: 1rem; }
-    .markdown-body a { color: #f59e0b; text-decoration: underline; transition: color 0.2s; }
-    .markdown-body a:hover { color: #fbbf24; }
-    .markdown-body strong { color: #e4e4e7; font-weight: 600; }
-    .markdown-body em { font-style: italic; }
-    .markdown-body code:not(pre code) { background: #27272a; color: #4ade80; padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; }
-    .markdown-body pre { background: #18181b; border: 1px solid #3f3f46; border-radius: 0.5rem; padding: 1rem; margin: 1rem 0; overflow-x: auto; }
-    .markdown-body pre code { background: transparent; padding: 0; font-size: 0.875rem; line-height: 1.5; }
-    .markdown-body ul, .markdown-body ol { margin: 1rem 0; padding-left: 1.5rem; }
-    .markdown-body ul { list-style-type: disc; }
-    .markdown-body ol { list-style-type: decimal; }
-    .markdown-body li { margin-bottom: 0.5rem; color: #d4d4d8; }
-    .markdown-body li::marker { color: #f59e0b; }
-    .markdown-body blockquote { border-left: 3px solid #f59e0b; padding-left: 1rem; margin: 1rem 0; color: #a1a1aa; font-style: italic; background: #27272a40; padding: 0.75rem 1rem; border-radius: 0 0.5rem 0.5rem 0; }
-    .markdown-body img { max-width: 100%; border-radius: 0.5rem; margin: 1rem 0; border: 1px solid #3f3f46; }
-    .markdown-body hr { border: none; border-top: 1px solid #3f3f46; margin: 2rem 0; }
-    .markdown-body table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
-    .markdown-body th, .markdown-body td { border: 1px solid #3f3f46; padding: 0.75rem; text-align: left; }
-    .markdown-body th { background: #27272a; color: #fbbf24; font-family: 'JetBrains Mono', monospace; font-weight: 600; }
-    .markdown-body td { background: #18181b; }
-    .markdown-body tr:hover td { background: #1f1f23; }
-    .markdown-body input[type="checkbox"] { margin-right: 0.5rem; accent-color: #f59e0b; }
-    .markdown-body .task-list-item { list-style-type: none; margin-left: -1.25rem; }
-
-    /* Code block header */
-    .code-block-wrapper { position: relative; margin: 1rem 0; }
-    .code-block-header { background: #27272a; border: 1px solid #3f3f46; border-bottom: none; border-radius: 0.5rem 0.5rem 0 0; padding: 0.5rem 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #71717a; display: flex; justify-content: space-between; align-items: center; }
-    .code-block-header + pre { margin-top: 0; border-radius: 0 0 0.5rem 0.5rem; }
-    .copy-btn { background: #3f3f46; border: none; color: #a1a1aa; padding: 0.25rem 0.5rem; border-radius: 0.25rem; cursor: pointer; font-size: 0.75rem; transition: all 0.2s; }
-    .copy-btn:hover { background: #52525b; color: #e4e4e7; }
-
-    /* Inline emoji */
-    .inline-emoji { display: inline; height: 1.2em; width: 1.2em; vertical-align: text-bottom; margin: 0 0.05em; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #18181b; }
+  ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+  input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; background: #27272a; border-radius: 3px; outline: none; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: #f59e0b; border-radius: 50%; cursor: pointer; box-shadow: 0 0 0 3px rgba(245,158,11,0.15); }
+  .toggle { position: relative; width: 32px; height: 20px; background: #3f3f46; border-radius: 9999px; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
+  .toggle.active { background: #f59e0b; }
+  .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+  .toggle.active::after { transform: translateX(12px); }
+  .warn { display: none; margin-top: 10px; padding: 8px 10px; border-radius: 8px; font-size: 11px; line-height: 1.4; align-items: flex-start; gap: 6px; }
+  .warn.show { display: flex; }
+  .warn-orange { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); color: #f59e0b; }
+  .warn-red { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; }
+  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); transition: transform 0.3s ease; }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+  #viewport:active { cursor: grabbing; }
+  .mode-btn { transition: all 0.15s; }
+  .mode-btn.active { background: #f59e0b; color: #18181b; }
+  @media (max-width: 800px) { #sidebar { width: 300px !important; min-width: 300px !important; } }
   </style>
 </head>
-<body class="bg-zinc-950">
-  <div id="root"></div>
+<body class="font-sans bg-zinc-950 text-zinc-100">
+<div id="app" class="flex h-screen">
+  <aside id="sidebar" class="w-[360px] min-w-[360px] bg-zinc-900 border-r border-zinc-700 flex flex-col overflow-y-auto overflow-x-hidden">
 
-  <script type="text/babel">
-    const { useState, useEffect, useMemo } = React;
-
-    // ============================================
-    // CONFIGURATION - CHANGE THESE VALUES
-    // ============================================
-    const CONFIG = {
-      // Your GitHub username
-      GITHUB_USERNAME: 'arnoutzw',
-
-      // Maximum number of repos to fetch
-      MAX_REPOS: 100,
-
-      // Site title
-      SITE_TITLE: 'Maker Portfolio',
-
-      // Tagline shown in header
-      TAGLINE: 'Building things that work (mostly)',
-
-      // Repos to exclude (by name)
-      EXCLUDE_REPOS: [], // Exclude embedded apps and the pages repo itself
-
-      // Only show repos with these topics (leave empty to show all)
-      FILTER_TOPICS: [],
-
-      // Hide forked repos
-      HIDE_FORKS: false,
-
-      // Admin password for login (enables hide/unhide repos)
-      ADMIN_PASSWORD: 'admin',
-
-      // Sorted by engineering lifecycle: Research → Simulation → Signal & Control → Mechanical → Hardware → Ship it!
-      INTEGRATED_APPS: [
-        // Research
-        {
-          id: 'datasheet-search-app',
-          name: 'Datasheets',
-          icon: 'FileSearch',
-          url: 'https://arnoutzw.github.io/datasheet-search-app/',
-          description: 'Search component datasheets',
-          isLocal: false,
-          fullscreen: true
-        },
-        // Simulation
-        {
-          id: 'ray-optics',
-          name: 'Ray Optics',
-          icon: 'Sun',
-          url: 'https://phydemo.app/ray-optics/simulator/',
-          description: 'Interactive ray optics simulator',
-          isLocal: false,
-          fullscreen: true
-        },
-        {
-          id: 'circuit-sim',
-          name: 'Circuit Sim',
-          icon: 'Zap',
-          url: 'https://www.falstad.com/circuit/circuitjs.html',
-          description: 'Interactive circuit simulator',
-          isLocal: false,
-          fullscreen: true
-        },
-        // Signal & Control
-        {
-          id: 'filter-design-studio-app',
-          name: 'Filter Design Studio',
-          icon: 'AudioLines',
-          url: 'https://arnoutzw.github.io/filter-design-studio-app/',
-          description: 'Analog and digital filter design tool',
-          isLocal: false,
-          fullscreen: true
-        },
-        {
-          id: 'control-tuner-app',
-          name: 'Control Loop Tuner',
-          icon: 'Gauge',
-          url: 'https://arnoutzw.github.io/control-tuner-app/',
-          description: 'PID controller tuner with Bode plots and time-domain response',
-          isLocal: false,
-          fullscreen: true
-        },
-        // Mechanical
-        {
-          id: 'engineering-calcs-app',
-          name: 'Engineering Calculators',
-          icon: 'Wrench',
-          url: 'https://arnoutzw.github.io/engineering-calcs-app/',
-          description: 'Tribology, bearings, fatigue & machine design calculators',
-          isLocal: false,
-          fullscreen: true
-        },
-        {
-          id: 'gear-calculator',
-          name: 'Gear Calculator',
-          icon: 'Cog',
-          url: 'https://arnoutzw.github.io/gear_calculator/',
-          description: 'Gear design and ratio calculator',
-          isLocal: false,
-          fullscreen: true
-        },
-        // Hardware
-        {
-          id: 'serial-app',
-          name: 'Serial Terminal',
-          icon: 'Terminal',
-          url: 'https://arnoutzw.github.io/serial-app/',
-          description: 'Web serial terminal for communicating with devices',
-          isLocal: false,
-          fullscreen: true
-        },
-        {
-          id: 'jk-bms-app',
-          name: 'JK BMS App',
-          icon: 'BatteryCharging',
-          url: 'https://arnoutzw.github.io/jk-bms-app/',
-          description: 'JK BMS battery monitor',
-          isLocal: false,
-          fullscreen: true
-        },
-        {
-          id: 'pq-bms-app',
-          name: 'PQ BMS Monitor',
-          icon: 'Battery',
-          url: 'https://arnoutzw.github.io/pq-bms-app/',
-          description: 'Monitor Powerqueen LiFePO4 batteries via Bluetooth',
-          isLocal: false,
-          fullscreen: true
-        },
-        // Ship it!
-        {
-          id: 'label-designer-app',
-          name: 'Label Designer',
-          icon: 'PenTool',
-          url: 'https://arnoutzw.github.io/label-designer-app/',
-          description: 'Design and print custom labels',
-          isLocal: false,
-          fullscreen: true
-        }
-      ],
-    };
-    // ============================================
-
-    // ============================================
-    // BUILD INFO - AUTO-UPDATED BY PRE-COMMIT HOOK
-    // ============================================
-    const BUILD_COMMIT = '18c665ca7b560b8b10dc5bcf983b59e32c3a538e';
-    const BUILD_DATE = '2026-02-06';
-
-    // Release notes per git hash, grouped by date
-    const VERSION_HISTORY = [
-      { hash: 'HEAD', date: '2026-02-07', changes: 'Add Gear Calculator to integrated apps' },
-      { hash: 'HEAD', date: '2026-02-07', changes: 'Add starred repos tab to main page' },
-      { hash: 'HEAD', date: '2026-02-07', changes: 'Sort apps by engineering lifecycle and add Serial Terminal' },
-      { hash: '005d933', date: '2026-02-06', changes: 'Restyle Engineering Calculators to match portfolio\'s dark zinc/amber theme' },
-      { hash: 'e6a46b3', date: '2026-02-06', changes: 'Add Engineering Calculators to main page integrated apps' },
-      { hash: '1a93eaf', date: '2026-02-06', changes: 'Update print label CSS to specify 40x30mm label size' },
-      { hash: '389d9db', date: '2026-02-06', changes: 'Add preferences menu with tab visibility toggles when logged in' },
-      { hash: '4fa4c57', date: '2026-02-06', changes: 'Fix stuck sliders in Analog Filter Designer with log-mapped ranges' },
-      { hash: 'a96f5af', date: '2026-02-06', changes: 'Add H(s) transfer function as design input to both filter designers' },
-      { hash: '4cc55c2', date: '2026-02-06', changes: 'Rename apps and add transfer function displays' },
-      { hash: '1cfce74', date: '2026-02-06', changes: 'Refactor printLabel() to use same render output as exportPNG()' },
-      { hash: '6081109', date: '2026-02-06', changes: 'Fix RLC Calculator layout to match Filter Designer scrolling' },
-      { hash: 'd78506e', date: '2026-02-06', changes: 'Make README.md the default opening item in project modal' },
-      { hash: '84ddcde', date: '2026-02-06', changes: 'Fix label designer export/print alignment to match design canvas' },
-      { hash: '389521e', date: '2026-02-06', changes: 'Add discrete biquad filter designer as new tab' },
-      { hash: '615dc06', date: '2026-02-06', changes: 'Restyle RLC calculator to match main portfolio theme' },
-      { hash: 'b4e75b9', date: '2026-02-06', changes: 'Add RLC Calculator as integrated app tab' },
-      { hash: 'c17aeac', date: '2026-02-06', changes: 'Fix silent barcode failure on inventory import in label designer' },
-      { hash: 'a1bd258', date: '2026-02-06', changes: 'Collapse nav tabs into hamburger menu on mobile/tablet' },
-      { hash: 'b011a43', date: '2026-02-06', changes: 'Add TrustedParts API as 3rd search mode in datasheet tab' },
-      { hash: '0e58754', date: '2026-02-06', changes: 'Encrypt NEXAR credentials with admin auth via AES-256-GCM' },
-      { hash: 'df1ff64', date: '2026-02-06', changes: 'Add NEXAR API search mode to datasheet search' },
-      { hash: '922db65', date: '2026-02-06', changes: 'Rename Projects tab to Original Projects' },
-      { hash: 'faa501d', date: '2026-02-06', changes: 'Add datasheet search and 3D model library tabs' },
-      { hash: '937938d', date: '2026-02-06', changes: 'Add camera-based resistor color band scanner' },
-      { hash: '33b0e4f', date: '2026-02-06', changes: 'Add resistor color code generator as integrated app tab' },
-      { hash: '12609cf', date: '2026-02-06', changes: 'Add basic shapes feature with resize support to label designer' },
-      { hash: '95b0b40', date: '2026-02-06', changes: 'Remove built-in label maker from lab-inventory app' },
-      { hash: '8f77bf7', date: '2026-02-06', changes: 'Move lab-inventory auth to main page admin login' },
-      { hash: '944db32', date: '2026-02-06', changes: 'Add Falstad Circuit Simulator as fullscreen app tab' },
-      { hash: '7b2dfb3', date: '2026-02-06', changes: 'Make Lab Inventory and Ray Optics render fullscreen' },
-      { hash: '57da581', date: '2026-02-06', changes: 'Make label designer embed fullscreen, hiding chrome and padding' },
-      { hash: 'ae64591', date: '2026-02-06', changes: 'Add Ray Optics simulator as an external app tab' },
-      { hash: 'ddc4ff7', date: '2026-02-06', changes: 'Add Label Designer as integrated app tab in portfolio' },
-      { hash: '92c8920', date: '2026-02-06', changes: 'Add code view with syntax highlighting to project modal' },
-      { hash: '18c665c', date: '2026-02-06', changes: 'Collapse folder tree by default in document reader' },
-      { hash: 'b977f60', date: '2026-02-06', changes: 'Replace flat file list with collapsible folder tree in doc reader' },
-      { hash: '5ac6810', date: '2026-02-06', changes: 'Add about section with build info and pre-commit hook' },
-      { hash: '35ebc6d', date: '2026-02-06', changes: 'Exclude pages repo from portfolio by default' },
-      { hash: '609f900', date: '2026-02-05', changes: 'Add admin login interface with repo hide/unhide functionality' },
-      { hash: 'dbd3440', date: '2026-02-05', changes: 'Add separate Forked Projects tab next to Projects tab' },
-      { hash: '51cbdc9', date: '2026-02-05', changes: 'Add login screen to protect lab inventory access' },
-      { hash: '9540075', date: '2026-02-05', changes: 'Restyle Lab Inventory to match Maker Portfolio dark/amber theme' },
-      { hash: '0b05ba1', date: '2026-02-05', changes: 'Add fork filter dropdown to portfolio page' },
-      { hash: 'e42ec29', date: '2026-02-05', changes: 'Fix markdown rendering for marked.js v12+ API changes' },
-      { hash: '4b3f2d6', date: '2026-02-05', changes: 'Increase MAX_REPOS to 100 to show all repositories' },
-      { hash: '19bd95b', date: '2026-02-05', changes: 'Show forked repos in portfolio' },
-      { hash: '56e5ccd', date: '2026-02-05', changes: 'Rename portfolio.html to index.html' },
-      { hash: '6ca4718', date: '2026-02-05', changes: 'Clean up repo to keep only portfolio.html and its dependencies' },
-      { hash: 'c5afde6', date: '2026-02-05', changes: 'Add pre-commit hook for auto version updates' },
-      { hash: 'c2d0016', date: '2026-02-05', changes: 'Add Easy Label Maker as a new page' },
-      { hash: '93f557e', date: '2026-02-01', changes: 'Add multiple CORS proxy fallbacks for image download' },
-      { hash: '0416dc7', date: '2026-02-01', changes: 'Fix barcode scanner crash and add more formats' },
-      { hash: '60ac2e1', date: '2026-02-01', changes: 'Add download button to sync photo from product URL' },
-      { hash: '8a9899f', date: '2026-02-01', changes: 'Replace version number with git hash and build date' },
-      { hash: '836a1d2', date: '2026-02-01', changes: 'Replace low stock warnings with project overallocation warnings' },
-      { hash: 'bcb1994', date: '2026-02-01', changes: 'Add automatic version check with update banner' },
-      { hash: 'd8c5138', date: '2026-02-01', changes: 'Update scanner for CODE128 barcode support' },
-      { hash: '36239b4', date: '2026-02-01', changes: 'Add sync photos from product links feature' },
-      { hash: 'e05aecb', date: '2026-02-01', changes: 'Add nested menus for Locaties view' },
-      { hash: 'cad748c', date: '2026-02-01', changes: 'Switch from QR codes to CODE128 barcodes for label printing' },
-      { hash: 'e4b1be2', date: '2026-02-01', changes: 'Update lab map to show dynamic locations from Locaties tab' },
-      { hash: 'a6a5da5', date: '2026-02-01', changes: 'Add Locaties (shelves/drawers) view with collapsible boxes' },
-      { hash: '1111e41', date: '2026-02-01', changes: 'Add interactive lab map view' },
-      { hash: 'ed50ea1', date: '2026-02-01', changes: 'Add value field and projects/BoM system' },
-      { hash: '87894e7', date: '2026-02-01', changes: 'Add dark mode theme and Material Design icons' },
-      { hash: 'cd05eca', date: '2026-02-01', changes: 'Add OWASP security improvements' },
-      { hash: '55c2a76', date: '2026-02-01', changes: 'Add ZIP export/import with photos' },
-      { hash: '66390e9', date: '2026-02-01', changes: 'Add Philips 12NC identification codes to items' },
-      { hash: '0258d02', date: '2026-02-01', changes: 'Add IndexedDB storage with photo support' },
-      { hash: '7ca5282', date: '2026-02-01', changes: 'Add QR code printing functionality via CUPS' },
-      { hash: '9393842', date: '2026-01-31', changes: 'Change box click to navigate to Items tab with filter' },
-      { hash: '27c6221', date: '2026-01-31', changes: 'Initial upload' },
-    ];
-    // ============================================
-
-    // Lucide icons
-    const icons = lucide;
-
-    // Icon component helper
-    const Icon = ({ name, size = 20, className = '' }) => {
-      const ref = React.useRef(null);
-      useEffect(() => {
-        if (ref.current) {
-          ref.current.innerHTML = '';
-          const icon = icons.createElement(icons[name]);
-          icon.setAttribute('width', size);
-          icon.setAttribute('height', size);
-          if (className) icon.setAttribute('class', className);
-          ref.current.appendChild(icon);
-        }
-      }, [name, size, className]);
-      return <span ref={ref} className="inline-flex" />;
-    };
-
-    // Language colors
-    const languageColors = {
-      JavaScript: '#f7df1e', TypeScript: '#3178c6', Python: '#3572A5',
-      Rust: '#dea584', Go: '#00ADD8', C: '#555555', 'C++': '#f34b7d',
-      Java: '#b07219', Ruby: '#701516', PHP: '#4F5D95', Swift: '#ffac45',
-      Kotlin: '#A97BFF', HTML: '#e34c26', CSS: '#563d7c', Shell: '#89e051',
-      Dockerfile: '#384d54', Vue: '#41b883', Svelte: '#ff3e00',
-    };
-
-    // Time ago helper
-    const getTimeAgo = (date) => {
-      const seconds = Math.floor((new Date() - new Date(date)) / 1000);
-      const intervals = [
-        { label: 'year', seconds: 31536000 },
-        { label: 'month', seconds: 2592000 },
-        { label: 'week', seconds: 604800 },
-        { label: 'day', seconds: 86400 },
-        { label: 'hour', seconds: 3600 },
-      ];
-      for (const interval of intervals) {
-        const count = Math.floor(seconds / interval.seconds);
-        if (count >= 1) return `${count} ${interval.label}${count > 1 ? 's' : ''} ago`;
-      }
-      return 'just now';
-    };
-
-    // Configure marked.js with highlight.js
-    const configureMarked = () => {
-      // Custom renderer for styled output
-      const renderer = new marked.Renderer();
-
-      // Add language label and copy button to code blocks
-      // Supports both old marked API (positional args) and new marked v12+ API (token object)
-      renderer.code = (codeOrToken, language) => {
-        const code = typeof codeOrToken === 'object' ? (codeOrToken.text || '') : codeOrToken;
-        const lang = typeof codeOrToken === 'object' ? codeOrToken.lang : language;
-        const validLang = lang && hljs.getLanguage(lang) ? lang : 'plaintext';
-        const highlighted = hljs.highlight(code, { language: validLang, ignoreIllegals: true }).value;
-        const langLabel = lang || 'code';
-        const escapedCode = code.replace(/'/g, "\\'").replace(/\n/g, '\\n');
-        return `
-          <div class="code-block-wrapper">
-            <div class="code-block-header">
-              <span>${langLabel}</span>
-              <button class="copy-btn" onclick="navigator.clipboard.writeText('${escapedCode}').then(() => { this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy', 2000); })">Copy</button>
-            </div>
-            <pre><code class="hljs language-${validLang}">${highlighted}</code></pre>
-          </div>
-        `;
-      };
-
-      // Make links open in new tab
-      renderer.link = (hrefOrToken, title, text) => {
-        const h = typeof hrefOrToken === 'object' ? (hrefOrToken.href || '') : hrefOrToken;
-        const t = typeof hrefOrToken === 'object' ? hrefOrToken.title : title;
-        const txt = typeof hrefOrToken === 'object' ? hrefOrToken.text : text;
-        const titleAttr = t ? ` title="${t}"` : '';
-        return `<a href="${h}"${titleAttr} target="_blank" rel="noopener noreferrer">${txt}</a>`;
-      };
-
-      // Handle checkboxes in task lists
-      renderer.listitem = (textOrToken, task, checked) => {
-        const txt = typeof textOrToken === 'object' ? textOrToken.text : textOrToken;
-        const isTask = typeof textOrToken === 'object' ? textOrToken.task : task;
-        const isChecked = typeof textOrToken === 'object' ? textOrToken.checked : checked;
-        if (isTask) {
-          return `<li class="task-list-item"><input type="checkbox" ${isChecked ? 'checked' : ''} disabled> ${txt}</li>`;
-        }
-        return `<li>${txt}</li>`;
-      };
-
-      marked.setOptions({
-        renderer,
-        gfm: true,
-        breaks: true,
-        headerIds: true,
-        mangle: false,
-      });
-    };
-
-    // Initialize marked configuration
-    configureMarked();
-
-    // GitHub emoji support
-    let emojiMap = {};
-    fetch('https://api.github.com/emojis')
-      .then(r => r.ok ? r.json() : {})
-      .then(data => { emojiMap = data; })
-      .catch(() => {});
-
-    const replaceEmojis = (text) =>
-      text.replace(/:([a-z0-9_+\-]+):/g, (match, name) => {
-        const url = emojiMap[name];
-        if (!url) return match;
-        return `<img src="${url}" alt="${name}" class="inline-emoji" />`;
-      });
-
-    // Markdown renderer using marked.js
-    const renderMarkdown = (text) => {
-      if (!text) return '';
-      try {
-        const html = marked.parse(text);
-        return replaceEmojis(html);
-      } catch (e) {
-        console.error('Markdown parsing error:', e);
-        return `<pre>${text}</pre>`;
-      }
-    };
-
-    // Project Card
-    const ProjectCard = ({ repo, onClick, isAdmin, isHidden, onToggleHide }) => {
-      const langColor = languageColors[repo.language] || '#6b7280';
-
-      return (
-        <div onClick={onClick}
-             className={`group relative bg-zinc-900 border rounded-lg p-5 cursor-pointer
-                        hover:border-amber-500/50 hover:bg-zinc-800/80 transition-all duration-300
-                        hover:shadow-lg hover:shadow-amber-500/10 hover:-translate-y-1
-                        ${isHidden ? 'border-red-500/30 opacity-60' : 'border-zinc-700'}`}>
-          {/* Terminal header */}
-          <div className="flex items-center gap-2 mb-3 pb-2 border-b border-zinc-700">
-            <div className="flex gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
-              <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-              <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
-            </div>
-            <span className="text-zinc-500 font-mono text-xs ml-2 truncate flex-1">~/projects/{repo.name}</span>
-            {isAdmin && (
-              <button onClick={(e) => { e.stopPropagation(); onToggleHide(repo.name); }}
-                      title={isHidden ? 'Unhide repo' : 'Hide repo'}
-                      className={`p-1 rounded transition-colors z-10 ${isHidden
-                        ? 'text-red-400 hover:bg-red-500/20 hover:text-red-300'
-                        : 'text-zinc-600 hover:bg-zinc-700 hover:text-zinc-300'}`}>
-                <Icon name={isHidden ? 'EyeOff' : 'Eye'} size={14} />
-              </button>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-xl font-mono font-bold text-zinc-100 group-hover:text-amber-400 transition-colors truncate">
-              {repo.name}
-            </h3>
-            {isHidden && (
-              <span className="text-xs bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded font-mono shrink-0">hidden</span>
-            )}
-          </div>
-
-          <p className="text-zinc-400 text-sm mb-4 line-clamp-2 min-h-[40px]">
-            {repo.description || 'No description provided'}
-          </p>
-
-          {/* Topics */}
-          {repo.topics && repo.topics.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              {repo.topics.slice(0, 3).map(topic => (
-                <span key={topic} className="text-xs px-2 py-0.5 bg-amber-500/10 text-amber-400 rounded font-mono">
-                  {topic}
-                </span>
-              ))}
-              {repo.topics.length > 3 && (
-                <span className="text-xs text-zinc-500">+{repo.topics.length - 3}</span>
-              )}
-            </div>
-          )}
-
-          {/* Stats */}
-          <div className="flex items-center gap-4 text-xs text-zinc-500">
-            {repo.language && (
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-full" style={{ backgroundColor: langColor }}></span>
-                <span>{repo.language}</span>
-              </div>
-            )}
-            <div className="flex items-center gap-1">
-              <Icon name="Star" size={14} className="text-amber-500" />
-              <span>{repo.stargazers_count}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Icon name="GitFork" size={14} />
-              <span>{repo.forks_count}</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1 text-xs text-zinc-600 mt-3">
-            <Icon name="Clock" size={12} />
-            <span>Updated {getTimeAgo(repo.updated_at)}</span>
-          </div>
-
-          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-500 to-orange-500
-                          scale-x-0 group-hover:scale-x-100 transition-transform duration-300 rounded-b-lg"></div>
+    <!-- Logo -->
+    <div class="px-5 pt-4 pb-4 border-b border-zinc-700">
+      <div class="flex gap-1.5 mb-3">
+        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+      </div>
+      <div class="flex items-center gap-3">
+        <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 flex-shrink-0">
+          <circle cx="256" cy="256" r="240" fill="#09090b"/>
+          <path d="M256 56 l20 50 l50-15 l-5 52 l50 12 l-30 43 l40 33 l-48 22 l22 48 l-52-3 l3 52 l-50-22 l-20 50 l-20-50 l-50 22 l3-52 l-52 3 l22-48 l-48-22 l40-33 l-30-43 l50-12 l-5-52 l50 15 Z" fill="#f59e0b" fill-opacity="0.9" stroke="#f59e0b" stroke-width="2"/>
+          <circle cx="256" cy="256" r="85" fill="#09090b"/>
+          <circle cx="256" cy="256" r="28" fill="#18181b" stroke="#3f3f46" stroke-width="3"/>
+        </svg>
+        <div>
+          <h1 class="font-mono font-bold text-amber-500 text-[15px] tracking-tight leading-tight">Involute Gear Generator</h1>
+          <span class="text-xs text-zinc-500 font-mono">DXF / SVG export for CAD &amp; CNC</span>
         </div>
-      );
-    };
+      </div>
+    </div>
 
-    // Documentation Reader Modal
-    const ProjectModal = ({ repo, username, onClose }) => {
-      const [docs, setDocs] = useState([]);
-      const [selectedDoc, setSelectedDoc] = useState(null);
-      const [content, setContent] = useState('');
-      const [loading, setLoading] = useState(true);
-      const [docsLoading, setDocsLoading] = useState(true);
-      const [sidebarOpen, setSidebarOpen] = useState(true);
-      const [expandedFolders, setExpandedFolders] = useState({});
-      const [viewMode, setViewMode] = useState('docs'); // 'docs' or 'code'
-      const [codeFiles, setCodeFiles] = useState([]);
-      const [codeLoading, setCodeLoading] = useState(false);
-      const [selectedCodeFile, setSelectedCodeFile] = useState(null);
-      const [codeContent, setCodeContent] = useState('');
-      const [codeContentLoading, setCodeContentLoading] = useState(false);
+    <!-- Mode Switch -->
+    <div class="px-5 pt-4 pb-3 border-b border-zinc-700">
+      <div class="flex bg-zinc-800 rounded-lg p-1 gap-1">
+        <button id="mode-single" class="mode-btn active flex-1 py-1.5 text-xs font-mono font-bold rounded-md text-center cursor-pointer">Single</button>
+        <button id="mode-pair" class="mode-btn flex-1 py-1.5 text-xs font-mono font-bold rounded-md text-center cursor-pointer text-zinc-400 hover:text-zinc-200">Pair</button>
+        <button id="mode-planetary" class="mode-btn flex-1 py-1.5 text-xs font-mono font-bold rounded-md text-center cursor-pointer text-zinc-400 hover:text-zinc-200">Planetary</button>
+      </div>
+    </div>
 
-      const toggleFolder = (folderPath) => {
-        setExpandedFolders(prev => ({ ...prev, [folderPath]: !prev[folderPath] }));
-      };
-
-      // Build a nested tree from flat file paths
-      const buildTree = (paths) => {
-        const root = { name: '', children: {}, files: [] };
-        paths.forEach(path => {
-          const parts = path.split('/');
-          let current = root;
-          for (let i = 0; i < parts.length - 1; i++) {
-            const folderName = parts[i];
-            if (!current.children[folderName]) {
-              current.children[folderName] = { name: folderName, children: {}, files: [] };
-            }
-            current = current.children[folderName];
-          }
-          current.files.push({ name: parts[parts.length - 1], path });
-        });
-        return root;
-      };
-
-      // Get language from file extension for syntax highlighting
-      const getLangFromPath = (path) => {
-        const ext = path.split('.').pop().toLowerCase();
-        const map = {
-          js: 'javascript', jsx: 'javascript', ts: 'typescript', tsx: 'typescript',
-          py: 'python', rb: 'ruby', rs: 'rust', go: 'go', java: 'java',
-          c: 'c', h: 'c', cpp: 'cpp', hpp: 'cpp', cs: 'csharp',
-          html: 'xml', htm: 'xml', xml: 'xml', svg: 'xml',
-          css: 'css', scss: 'scss', less: 'less',
-          json: 'json', yaml: 'yaml', yml: 'yaml', toml: 'ini',
-          md: 'markdown', sh: 'bash', bash: 'bash', zsh: 'bash',
-          sql: 'sql', php: 'php', swift: 'swift', kt: 'kotlin',
-          dockerfile: 'dockerfile', makefile: 'makefile',
-          lua: 'lua', r: 'r', dart: 'dart', vue: 'xml', svelte: 'xml',
-        };
-        return map[ext] || 'plaintext';
-      };
-
-      // Fetch list of markdown files in the repo
-      useEffect(() => {
-        const fetchDocs = async () => {
-          setDocsLoading(true);
-          try {
-            const response = await fetch(
-              `https://api.github.com/repos/${username}/${repo.name}/git/trees/HEAD?recursive=1`
-            );
-            if (response.ok) {
-              const data = await response.json();
-              const allBlobs = data.tree.filter(f => f.type === 'blob');
-              const mdFiles = allBlobs
-                .filter(f => /\.(md|markdown)$/i.test(f.path))
-                .map(f => f.path)
-                .sort((a, b) => {
-                  if (a.toLowerCase().includes('readme')) return -1;
-                  if (b.toLowerCase().includes('readme')) return 1;
-                  return a.localeCompare(b);
-                });
-              setDocs(mdFiles.length > 0 ? mdFiles : ['README.md']);
-              // Default to first README (sorted first), or fallback to README.md
-              setSelectedDoc(mdFiles.length > 0 ? mdFiles[0] : 'README.md');
-              // Store all code files (non-markdown blobs)
-              const allCodeFiles = allBlobs
-                .filter(f => !/\.(md|markdown)$/i.test(f.path))
-                .map(f => f.path)
-                .sort();
-              setCodeFiles(allCodeFiles);
-            } else {
-              setDocs(['README.md']);
-            }
-          } catch {
-            setDocs(['README.md']);
-          } finally {
-            setDocsLoading(false);
-          }
-        };
-        fetchDocs();
-      }, [repo.name, username]);
-
-      // Fetch selected document content
-      useEffect(() => {
-        if (viewMode !== 'docs') return;
-        const fetchContent = async () => {
-          setLoading(true);
-          try {
-            const response = await fetch(
-              `https://api.github.com/repos/${username}/${repo.name}/contents/${selectedDoc}`
-            );
-            if (response.ok) {
-              const data = await response.json();
-              setContent(atob(data.content));
-            } else {
-              setContent('');
-            }
-          } catch {
-            setContent('');
-          } finally {
-            setLoading(false);
-          }
-        };
-        if (selectedDoc) fetchContent();
-      }, [selectedDoc, repo.name, username, viewMode]);
-
-      // Fetch selected code file content
-      useEffect(() => {
-        if (viewMode !== 'code' || !selectedCodeFile) return;
-        const fetchCode = async () => {
-          setCodeContentLoading(true);
-          try {
-            const response = await fetch(
-              `https://api.github.com/repos/${username}/${repo.name}/contents/${selectedCodeFile}`
-            );
-            if (response.ok) {
-              const data = await response.json();
-              setCodeContent(atob(data.content));
-            } else {
-              setCodeContent('');
-            }
-          } catch {
-            setCodeContent('');
-          } finally {
-            setCodeContentLoading(false);
-          }
-        };
-        fetchCode();
-      }, [selectedCodeFile, repo.name, username, viewMode]);
-
-      useEffect(() => {
-        const handleEsc = (e) => e.key === 'Escape' && onClose();
-        window.addEventListener('keydown', handleEsc);
-        document.body.style.overflow = 'hidden';
-        return () => {
-          window.removeEventListener('keydown', handleEsc);
-          document.body.style.overflow = '';
-        };
-      }, [onClose]);
-
-      const getFileName = (path) => path.split('/').pop();
-
-      const currentFiles = viewMode === 'docs' ? docs : codeFiles;
-      const currentSelected = viewMode === 'docs' ? selectedDoc : selectedCodeFile;
-      const setCurrentSelected = viewMode === 'docs' ? setSelectedDoc : setSelectedCodeFile;
-      const isTreeLoading = viewMode === 'docs' ? docsLoading : docsLoading; // both come from same fetch
-
-      // Render highlighted code
-      const renderCodeContent = (code, filePath) => {
-        const lang = getLangFromPath(filePath);
-        const validLang = hljs.getLanguage(lang) ? lang : 'plaintext';
-        try {
-          return hljs.highlight(code, { language: validLang, ignoreIllegals: true }).value;
-        } catch {
-          return code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        }
-      };
-
-      // Render tree nodes (shared between docs and code views)
-      const renderTree = () => {
-        const tree = buildTree(currentFiles);
-        const renderNode = (node, path, depth) => {
-          const folderEntries = Object.keys(node.children).sort();
-          const pl = `${0.75 + depth * 0.75}rem`;
-          return (
-            <React.Fragment key={path || 'root'}>
-              {folderEntries.map(name => {
-                const folderPath = path ? `${path}/${name}` : name;
-                const isExpanded = expandedFolders[folderPath];
-                return (
-                  <React.Fragment key={folderPath}>
-                    <button onClick={() => toggleFolder(folderPath)}
-                            className="w-full text-left py-1.5 text-sm font-mono transition-colors flex items-center gap-1.5
-                                     text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
-                            style={{ paddingLeft: pl }}>
-                      <Icon name={isExpanded ? 'ChevronDown' : 'ChevronRight'} size={12} className="text-zinc-600 shrink-0" />
-                      <Icon name={isExpanded ? 'FolderOpen' : 'Folder'} size={14} className="text-amber-500/70 shrink-0" />
-                      <span className="truncate">{name}</span>
-                    </button>
-                    {isExpanded && renderNode(node.children[name], folderPath, depth + 1)}
-                  </React.Fragment>
-                );
-              })}
-              {node.files.map(file => (
-                <button key={file.path}
-                        onClick={() => setCurrentSelected(file.path)}
-                        className={`w-full text-left py-1.5 text-sm font-mono transition-colors flex items-center gap-1.5
-                                  ${currentSelected === file.path
-                                    ? 'bg-amber-500/20 text-amber-400 border-r-2 border-amber-500'
-                                    : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'}`}
-                        style={{ paddingLeft: `${0.75 + (depth + 0.5) * 0.75}rem` }}>
-                  <Icon name={viewMode === 'code' ? 'FileCode' : 'FileText'} size={14}
-                        className={currentSelected === file.path ? 'text-amber-500 shrink-0' : 'text-zinc-600 shrink-0'} />
-                  <span className="truncate">{file.name}</span>
-                </button>
-              ))}
-            </React.Fragment>
-          );
-        };
-        return <div className="py-1">{renderNode(tree, '', 0)}</div>;
-      };
-
-      const displayedPath = viewMode === 'docs' ? (selectedDoc || '') : (selectedCodeFile || '');
-
-      return (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4"
-             onClick={onClose}>
-          <div className="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-6xl h-[95vh] overflow-hidden shadow-2xl flex flex-col"
-               onClick={e => e.stopPropagation()}>
-            {/* Header */}
-            <div className="bg-zinc-800 border-b border-zinc-700 p-3 flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-red-500 cursor-pointer hover:bg-red-400" onClick={onClose}></div>
-                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                </div>
-                <button onClick={() => setSidebarOpen(!sidebarOpen)}
-                        className="p-1 hover:bg-zinc-700 rounded transition-colors lg:hidden">
-                  <Icon name={sidebarOpen ? 'PanelLeftClose' : 'PanelLeft'} size={16} className="text-zinc-400" />
-                </button>
-                <div className="flex items-center gap-2">
-                  <Icon name={viewMode === 'docs' ? 'BookOpen' : 'Code'} size={18} className="text-amber-500" />
-                  <span className="font-mono text-zinc-200 font-bold">{repo.name}</span>
-                  {displayedPath && (
-                    <span className="text-zinc-500 font-mono text-sm hidden sm:inline">/ {displayedPath}</span>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {/* View mode toggle */}
-                <div className="flex bg-zinc-700/50 rounded-lg p-0.5">
-                  <button onClick={() => setViewMode('docs')}
-                          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-mono text-xs transition-all
-                                    ${viewMode === 'docs' ? 'bg-amber-500 text-zinc-900' : 'text-zinc-400 hover:text-zinc-200'}`}>
-                    <Icon name="BookOpen" size={12} />
-                    <span className="hidden sm:inline">Docs</span>
-                  </button>
-                  <button onClick={() => setViewMode('code')}
-                          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-mono text-xs transition-all
-                                    ${viewMode === 'code' ? 'bg-amber-500 text-zinc-900' : 'text-zinc-400 hover:text-zinc-200'}`}>
-                    <Icon name="Code" size={12} />
-                    <span className="hidden sm:inline">Code</span>
-                  </button>
-                </div>
-                <a href={`${repo.html_url}/blob/HEAD/${displayedPath}`} target="_blank" rel="noopener noreferrer"
-                   className="flex items-center gap-1.5 text-zinc-400 hover:text-amber-400 transition-colors text-sm px-2 py-1 rounded hover:bg-zinc-700">
-                  <Icon name="Github" size={14} />
-                  <span className="hidden sm:inline">View on GitHub</span>
-                </a>
-                <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300 p-1 hover:bg-zinc-700 rounded">
-                  <Icon name="X" size={20} />
-                </button>
-              </div>
-            </div>
-
-            {/* Main content area */}
-            <div className="flex flex-1 overflow-hidden">
-              {/* Sidebar - File tree */}
-              <div className={`${sidebarOpen ? 'w-64' : 'w-0'} shrink-0 bg-zinc-850 border-r border-zinc-700 overflow-hidden transition-all duration-200`}
-                   style={{ backgroundColor: '#1a1a1f' }}>
-                <div className="p-3 border-b border-zinc-700">
-                  <h3 className="text-xs font-mono text-zinc-500 uppercase tracking-wider flex items-center gap-2">
-                    <Icon name={viewMode === 'docs' ? 'Files' : 'FolderCode'} size={14} />
-                    {viewMode === 'docs' ? 'Documentation' : 'Source Code'}
-                  </h3>
-                </div>
-                <div className="overflow-y-auto h-[calc(100%-48px)]">
-                  {isTreeLoading ? (
-                    <div className="p-4 text-center">
-                      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-amber-500 mx-auto"></div>
-                    </div>
-                  ) : currentFiles.length === 0 ? (
-                    <div className="p-4 text-center text-zinc-600 font-mono text-xs">
-                      No files found
-                    </div>
-                  ) : renderTree()}
-                </div>
-              </div>
-
-              {/* Content area */}
-              <div className="flex-1 overflow-y-auto">
-                {/* Stats bar */}
-                <div className="bg-zinc-800/30 border-b border-zinc-700/50 px-4 py-2 flex flex-wrap gap-4 text-xs shrink-0">
-                  <div className="flex items-center gap-1.5">
-                    <Icon name="Star" size={14} className="text-amber-500" />
-                    <span className="text-zinc-400">{repo.stargazers_count}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Icon name="GitFork" size={14} className="text-zinc-500" />
-                    <span className="text-zinc-400">{repo.forks_count}</span>
-                  </div>
-                  {repo.language && (
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: languageColors[repo.language] || '#6b7280' }}></span>
-                      <span className="text-zinc-400">{repo.language}</span>
-                    </div>
-                  )}
-                  {repo.license && (
-                    <div className="flex items-center gap-1.5">
-                      <Icon name="Scale" size={14} className="text-zinc-500" />
-                      <span className="text-zinc-400">{repo.license.spdx_id || repo.license.name}</span>
-                    </div>
-                  )}
-                  {repo.description && (
-                    <div className="flex-1 text-zinc-500 truncate hidden md:block">
-                      {repo.description}
-                    </div>
-                  )}
-                </div>
-
-                {/* Content */}
-                {viewMode === 'docs' ? (
-                  <div className="p-6 md:p-8">
-                    {loading || !selectedDoc ? (
-                      <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-amber-500"></div>
-                        <span className="ml-3 text-zinc-400 font-mono">Loading {selectedDoc ? getFileName(selectedDoc) : 'README'}...</span>
-                      </div>
-                    ) : content ? (
-                      <div className="markdown-body max-w-none"
-                           dangerouslySetInnerHTML={{ __html: renderMarkdown(content) }} />
-                    ) : (
-                      <div className="text-center py-12 text-zinc-500">
-                        <Icon name="FileQuestion" size={48} className="mx-auto mb-4 opacity-50" />
-                        <p className="font-mono">Document not found: {selectedDoc}</p>
-                        <p className="text-sm mt-2">This file may not exist in the repository.</p>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="p-0">
-                    {!selectedCodeFile ? (
-                      <div className="text-center py-12 text-zinc-500">
-                        <Icon name="FileCode" size={48} className="mx-auto mb-4 opacity-50" />
-                        <p className="font-mono">Select a file to view</p>
-                      </div>
-                    ) : codeContentLoading ? (
-                      <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-amber-500"></div>
-                        <span className="ml-3 text-zinc-400 font-mono">Loading {getFileName(selectedCodeFile)}...</span>
-                      </div>
-                    ) : codeContent ? (
-                      <div className="relative">
-                        <div className="bg-zinc-800/50 border-b border-zinc-700/50 px-4 py-1.5 flex items-center justify-between">
-                          <span className="font-mono text-xs text-zinc-500">{selectedCodeFile}</span>
-                          <button onClick={() => { navigator.clipboard.writeText(codeContent); }}
-                                  className="text-xs text-zinc-500 hover:text-zinc-300 font-mono px-2 py-0.5 rounded hover:bg-zinc-700 transition-colors">
-                            Copy
-                          </button>
-                        </div>
-                        <pre className="p-4 overflow-x-auto text-sm leading-relaxed"><code
-                          className={`hljs language-${getLangFromPath(selectedCodeFile)}`}
-                          dangerouslySetInnerHTML={{ __html: renderCodeContent(codeContent, selectedCodeFile) }}
-                        /></pre>
-                      </div>
-                    ) : (
-                      <div className="text-center py-12 text-zinc-500">
-                        <Icon name="FileQuestion" size={48} className="mx-auto mb-4 opacity-50" />
-                        <p className="font-mono">File not found: {selectedCodeFile}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+    <!-- Gear 1 Parameters -->
+    <div class="p-5 border-b border-zinc-700">
+      <div class="flex items-center justify-between mb-3.5">
+        <span class="text-xs font-bold uppercase tracking-widest text-zinc-500 font-mono" id="g1-title">Gear Parameters</span>
+        <span class="text-xs px-2 py-0.5 bg-amber-500/10 text-amber-400 rounded font-mono">Spur</span>
+      </div>
+      <div class="mb-3">
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="text-sm font-medium">Module (mm)</span>
+          <span class="font-mono text-xs font-medium text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded min-w-[52px] text-center" id="v-mod">2.0</span>
         </div>
-      );
-    };
+        <div class="flex items-center gap-2.5">
+          <input type="range" id="r-mod" min="0.3" max="12" step="0.1" value="2" class="flex-1">
+          <input type="number" id="n-mod" min="0.1" max="50" step="0.1" value="2" class="w-[72px] px-1.5 py-1 bg-zinc-800 border border-zinc-700 rounded text-zinc-100 font-mono text-xs text-center outline-none focus:border-amber-500">
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="text-sm font-medium">Number of Teeth</span>
+          <span class="font-mono text-xs font-medium text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded min-w-[52px] text-center" id="v-teeth">24</span>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <input type="range" id="r-teeth" min="6" max="200" step="1" value="24" class="flex-1">
+          <input type="number" id="n-teeth" min="4" max="500" step="1" value="24" class="w-[72px] px-1.5 py-1 bg-zinc-800 border border-zinc-700 rounded text-zinc-100 font-mono text-xs text-center outline-none focus:border-amber-500">
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="text-sm font-medium">Pressure Angle</span>
+        </div>
+        <select id="s-pa" class="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-100 text-sm font-mono outline-none cursor-pointer focus:border-amber-500">
+          <option value="14.5">14.5 (legacy / clocks)</option>
+          <option value="20" selected>20 (standard)</option>
+          <option value="25">25 (high load)</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="text-sm font-medium">Profile Shift (x)</span>
+          <span class="font-mono text-xs font-medium text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded min-w-[52px] text-center" id="v-ps">0.00</span>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <input type="range" id="r-ps" min="-0.6" max="0.6" step="0.01" value="0" class="flex-1">
+          <input type="number" id="n-ps" min="-1" max="1" step="0.01" value="0" class="w-[72px] px-1.5 py-1 bg-zinc-800 border border-zinc-700 rounded text-zinc-100 font-mono text-xs text-center outline-none focus:border-amber-500">
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="text-sm font-medium">Bore Diameter (mm)</span>
+          <span class="font-mono text-xs font-medium text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded min-w-[52px] text-center" id="v-bore">8.0</span>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <input type="range" id="r-bore" min="0" max="200" step="0.5" value="8" class="flex-1">
+          <input type="number" id="n-bore" min="0" max="500" step="0.1" value="8" class="w-[72px] px-1.5 py-1 bg-zinc-800 border border-zinc-700 rounded text-zinc-100 font-mono text-xs text-center outline-none focus:border-amber-500">
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="text-sm font-medium">Clearance Coeff.</span>
+          <span class="font-mono text-xs font-medium text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded min-w-[52px] text-center" id="v-cl">0.25</span>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <input type="range" id="r-cl" min="0.1" max="0.4" step="0.01" value="0.25" class="flex-1">
+          <input type="number" id="n-cl" min="0" max="1" step="0.01" value="0.25" class="w-[72px] px-1.5 py-1 bg-zinc-800 border border-zinc-700 rounded text-zinc-100 font-mono text-xs text-center outline-none focus:border-amber-500">
+        </div>
+      </div>
+      <div>
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="text-sm font-medium">Profile Resolution</span>
+          <span class="font-mono text-xs font-medium text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded min-w-[52px] text-center" id="v-res">40</span>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <input type="range" id="r-res" min="10" max="100" step="5" value="40" class="flex-1">
+          <input type="number" id="n-res" min="5" max="200" step="1" value="40" class="w-[72px] px-1.5 py-1 bg-zinc-800 border border-zinc-700 rounded text-zinc-100 font-mono text-xs text-center outline-none focus:border-amber-500">
+        </div>
+      </div>
+      <div id="warn-undercut" class="warn warn-orange">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="flex-shrink-0 mt-0.5"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+        <span id="warn-text"></span>
+      </div>
+    </div>
 
-    // Navigation Tab Button (icon-only with tooltip)
-    const NavTab = ({ active, icon, label, onClick }) => (
-      <button onClick={onClick} title={label}
-              className={`relative group flex items-center justify-center w-9 h-9 rounded-lg transition-all
-                        ${active
-                          ? 'bg-amber-500 text-zinc-900 shadow-lg shadow-amber-500/20'
-                          : 'bg-zinc-800/60 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'}`}>
-        <Icon name={icon} size={16} />
-        <span className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded bg-zinc-800
-                         border border-zinc-700 text-xs font-mono text-zinc-300 whitespace-nowrap opacity-0
-                         group-hover:opacity-100 transition-opacity z-50 shadow-lg">{label}</span>
+    <!-- Gear 2 Parameters (hidden by default) -->
+    <div id="gear2-section" class="p-5 border-b border-zinc-700" style="display:none">
+      <div class="flex items-center justify-between mb-3.5">
+        <span class="text-xs font-bold uppercase tracking-widest text-zinc-500 font-mono">Gear 2</span>
+        <span class="text-xs px-2 py-0.5 bg-cyan-500/10 text-cyan-400 rounded font-mono">Driven</span>
+      </div>
+      <div class="mb-3">
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="text-sm font-medium">Number of Teeth</span>
+          <span class="font-mono text-xs font-medium text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded min-w-[52px] text-center" id="v-teeth2">36</span>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <input type="range" id="r-teeth2" min="6" max="200" step="1" value="36" class="flex-1">
+          <input type="number" id="n-teeth2" min="4" max="500" step="1" value="36" class="w-[72px] px-1.5 py-1 bg-zinc-800 border border-zinc-700 rounded text-zinc-100 font-mono text-xs text-center outline-none focus:border-cyan-400">
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="text-sm font-medium">Profile Shift (x)</span>
+          <span class="font-mono text-xs font-medium text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded min-w-[52px] text-center" id="v-ps2">0.00</span>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <input type="range" id="r-ps2" min="-0.6" max="0.6" step="0.01" value="0" class="flex-1">
+          <input type="number" id="n-ps2" min="-1" max="1" step="0.01" value="0" class="w-[72px] px-1.5 py-1 bg-zinc-800 border border-zinc-700 rounded text-zinc-100 font-mono text-xs text-center outline-none focus:border-cyan-400">
+        </div>
+      </div>
+      <div>
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="text-sm font-medium">Bore Diameter (mm)</span>
+          <span class="font-mono text-xs font-medium text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded min-w-[52px] text-center" id="v-bore2">12.0</span>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <input type="range" id="r-bore2" min="0" max="200" step="0.5" value="12" class="flex-1">
+          <input type="number" id="n-bore2" min="0" max="500" step="0.1" value="12" class="w-[72px] px-1.5 py-1 bg-zinc-800 border border-zinc-700 rounded text-zinc-100 font-mono text-xs text-center outline-none focus:border-cyan-400">
+        </div>
+      </div>
+    </div>
+
+    <!-- Planetary Parameters (hidden by default) -->
+    <div id="planetary-section" class="p-5 border-b border-zinc-700" style="display:none">
+      <div class="flex items-center justify-between mb-3.5">
+        <span class="text-xs font-bold uppercase tracking-widest text-zinc-500 font-mono">Planetary Set</span>
+        <span class="text-xs px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded font-mono">Epicyclic</span>
+      </div>
+      <div class="mb-3">
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="text-sm font-medium">Sun Teeth</span>
+          <span class="font-mono text-xs font-medium text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded min-w-[52px] text-center" id="v-sunz">20</span>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <input type="range" id="r-sunz" min="8" max="100" step="1" value="20" class="flex-1">
+          <input type="number" id="n-sunz" min="6" max="200" step="1" value="20" class="w-[72px] px-1.5 py-1 bg-zinc-800 border border-zinc-700 rounded text-zinc-100 font-mono text-xs text-center outline-none focus:border-amber-500">
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="text-sm font-medium">Planet Teeth</span>
+          <span class="font-mono text-xs font-medium text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded min-w-[52px] text-center" id="v-planz">10</span>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <input type="range" id="r-planz" min="6" max="100" step="1" value="10" class="flex-1">
+          <input type="number" id="n-planz" min="6" max="200" step="1" value="10" class="w-[72px] px-1.5 py-1 bg-zinc-800 border border-zinc-700 rounded text-zinc-100 font-mono text-xs text-center outline-none focus:border-cyan-400">
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="text-sm font-medium">Number of Planets</span>
+          <span class="font-mono text-xs font-medium text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded min-w-[52px] text-center" id="v-nplan">3</span>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <input type="range" id="r-nplan" min="2" max="8" step="1" value="3" class="flex-1">
+          <input type="number" id="n-nplan" min="2" max="8" step="1" value="3" class="w-[72px] px-1.5 py-1 bg-zinc-800 border border-zinc-700 rounded text-zinc-100 font-mono text-xs text-center outline-none focus:border-emerald-400">
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="text-sm font-medium">Ring Teeth (auto)</span>
+          <span class="font-mono text-xs font-medium text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded min-w-[52px] text-center" id="v-ringz">40</span>
+        </div>
+      </div>
+      <div class="mb-3">
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="text-sm font-medium">Sun Bore (mm)</span>
+          <span class="font-mono text-xs font-medium text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded min-w-[52px] text-center" id="v-sunbore">6.0</span>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <input type="range" id="r-sunbore" min="0" max="100" step="0.5" value="6" class="flex-1">
+          <input type="number" id="n-sunbore" min="0" max="200" step="0.1" value="6" class="w-[72px] px-1.5 py-1 bg-zinc-800 border border-zinc-700 rounded text-zinc-100 font-mono text-xs text-center outline-none focus:border-amber-500">
+        </div>
+      </div>
+      <div>
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="text-sm font-medium">Planet Bore (mm)</span>
+          <span class="font-mono text-xs font-medium text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded min-w-[52px] text-center" id="v-planbore">4.0</span>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <input type="range" id="r-planbore" min="0" max="100" step="0.5" value="4" class="flex-1">
+          <input type="number" id="n-planbore" min="0" max="200" step="0.1" value="4" class="w-[72px] px-1.5 py-1 bg-zinc-800 border border-zinc-700 rounded text-zinc-100 font-mono text-xs text-center outline-none focus:border-amber-500">
+        </div>
+      </div>
+      <div id="warn-planetary" class="warn warn-orange">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="flex-shrink-0 mt-0.5"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+        <span id="warn-plan-text"></span>
+      </div>
+    </div>
+
+    <!-- Display -->
+    <div class="p-5 border-b border-zinc-700">
+      <div class="flex items-center justify-between mb-3.5">
+        <span class="text-xs font-bold uppercase tracking-widest text-zinc-500 font-mono">Display</span>
+      </div>
+      <div class="flex items-center gap-2.5 mb-3"><div class="toggle active" id="t-pitch" data-key="showPitch"></div><label class="text-sm font-medium cursor-pointer text-zinc-300">Pitch circle</label></div>
+      <div class="flex items-center gap-2.5 mb-3"><div class="toggle active" id="t-base" data-key="showBase"></div><label class="text-sm font-medium cursor-pointer text-zinc-300">Base circle</label></div>
+      <div class="flex items-center gap-2.5 mb-3"><div class="toggle" id="t-root" data-key="showRoot"></div><label class="text-sm font-medium cursor-pointer text-zinc-300">Root circle</label></div>
+      <div class="flex items-center gap-2.5 mb-3"><div class="toggle" id="t-outer" data-key="showOuter"></div><label class="text-sm font-medium cursor-pointer text-zinc-300">Addendum circle</label></div>
+      <div class="flex items-center gap-2.5"><div class="toggle active" id="t-dims" data-key="showDims"></div><label class="text-sm font-medium cursor-pointer text-zinc-300">Dimension labels</label></div>
+    </div>
+
+    <!-- Computed Values -->
+    <div class="p-5 border-b border-zinc-700">
+      <div class="flex items-center justify-between mb-3.5">
+        <span class="text-xs font-bold uppercase tracking-widest text-zinc-500 font-mono">Computed Values</span>
+      </div>
+      <div class="grid grid-cols-2 gap-x-3.5 gap-y-1.5">
+        <div class="flex justify-between items-center py-1 text-xs"><span class="text-zinc-500">Pitch Dia.</span><span class="font-mono text-xs font-medium" id="i-pd">--</span></div>
+        <div class="flex justify-between items-center py-1 text-xs"><span class="text-zinc-500">Outside Dia.</span><span class="font-mono text-xs font-medium" id="i-od">--</span></div>
+        <div class="flex justify-between items-center py-1 text-xs"><span class="text-zinc-500">Root Dia.</span><span class="font-mono text-xs font-medium" id="i-rd">--</span></div>
+        <div class="flex justify-between items-center py-1 text-xs"><span class="text-zinc-500">Base Dia.</span><span class="font-mono text-xs font-medium" id="i-bd">--</span></div>
+        <div class="flex justify-between items-center py-1 text-xs"><span class="text-zinc-500">Circ. Pitch</span><span class="font-mono text-xs font-medium" id="i-cp">--</span></div>
+        <div class="flex justify-between items-center py-1 text-xs"><span class="text-zinc-500">Tooth Thk.</span><span class="font-mono text-xs font-medium" id="i-tt">--</span></div>
+        <div class="flex justify-between items-center py-1 text-xs"><span class="text-zinc-500">Addendum</span><span class="font-mono text-xs font-medium" id="i-ha">--</span></div>
+        <div class="flex justify-between items-center py-1 text-xs"><span class="text-zinc-500">Dedendum</span><span class="font-mono text-xs font-medium" id="i-hf">--</span></div>
+        <div class="flex justify-between items-center py-1 text-xs"><span class="text-zinc-500">Total Points</span><span class="font-mono text-xs font-medium" id="i-np">--</span></div>
+        <div class="flex justify-between items-center py-1 text-xs"><span class="text-zinc-500">Undercut</span><span class="font-mono text-xs font-medium" id="i-uc">--</span></div>
+      </div>
+      <!-- Pair-mode info -->
+      <div id="pair-info" class="mt-3 pt-3 border-t border-zinc-700/50 grid grid-cols-2 gap-x-3.5 gap-y-1.5" style="display:none">
+        <div class="flex justify-between items-center py-1 text-xs"><span class="text-cyan-600">G2 Pitch Dia.</span><span class="font-mono text-xs font-medium text-cyan-400" id="i-pd2">--</span></div>
+        <div class="flex justify-between items-center py-1 text-xs"><span class="text-cyan-600">G2 Outside Dia.</span><span class="font-mono text-xs font-medium text-cyan-400" id="i-od2">--</span></div>
+        <div class="flex justify-between items-center py-1 text-xs col-span-2"><span class="text-zinc-500">Center Distance</span><span class="font-mono text-xs font-bold text-amber-400" id="i-cd">--</span></div>
+        <div class="flex justify-between items-center py-1 text-xs"><span class="text-zinc-500">Gear Ratio</span><span class="font-mono text-xs font-medium" id="i-gr">--</span></div>
+        <div class="flex justify-between items-center py-1 text-xs"><span class="text-zinc-500">Speed Ratio</span><span class="font-mono text-xs font-medium" id="i-sr">--</span></div>
+      </div>
+      <!-- Planetary-mode info -->
+      <div id="planetary-info" class="mt-3 pt-3 border-t border-zinc-700/50 grid grid-cols-2 gap-x-3.5 gap-y-1.5" style="display:none">
+        <div class="flex justify-between items-center py-1 text-xs"><span class="text-amber-600">Sun Pitch Dia.</span><span class="font-mono text-xs font-medium text-amber-400" id="i-spd">--</span></div>
+        <div class="flex justify-between items-center py-1 text-xs"><span class="text-cyan-600">Planet Pitch Dia.</span><span class="font-mono text-xs font-medium text-cyan-400" id="i-ppd">--</span></div>
+        <div class="flex justify-between items-center py-1 text-xs"><span class="text-rose-600">Ring Pitch Dia.</span><span class="font-mono text-xs font-medium text-rose-400" id="i-rpd">--</span></div>
+        <div class="flex justify-between items-center py-1 text-xs"><span class="text-zinc-500">Center Distance</span><span class="font-mono text-xs font-bold text-amber-400" id="i-pcd">--</span></div>
+        <div class="flex justify-between items-center py-1 text-xs"><span class="text-zinc-500">Overall Ratio</span><span class="font-mono text-xs font-bold text-emerald-400" id="i-ratio">--</span></div>
+        <div class="flex justify-between items-center py-1 text-xs"><span class="text-zinc-500">Ring Teeth</span><span class="font-mono text-xs font-medium text-rose-400" id="i-rtz">--</span></div>
+        <div class="flex justify-between items-center py-1 text-xs col-span-2"><span class="text-zinc-500">Assembly</span><span class="font-mono text-xs font-medium" id="i-asm">--</span></div>
+      </div>
+    </div>
+
+    <!-- Export -->
+    <div class="p-5 mt-auto border-t border-zinc-700">
+      <div class="flex items-center justify-between mb-3.5">
+        <span class="text-xs font-bold uppercase tracking-widest text-zinc-500 font-mono">Export</span>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <button class="bg-amber-500 hover:bg-amber-400 text-zinc-900 font-mono font-bold px-4 py-2.5 rounded-lg col-span-2 flex items-center justify-center gap-2 transition-colors active:scale-[0.97]" id="btn-dxf">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export DXF
+        </button>
+        <button class="bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs font-mono px-3 py-1.5 rounded-lg flex items-center justify-center gap-2 transition-colors active:scale-[0.97]" id="btn-svg">SVG</button>
+        <button class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-mono px-3 py-1.5 rounded-lg border border-zinc-700 flex items-center justify-center gap-2 transition-colors active:scale-[0.97]" id="btn-png">PNG</button>
+      </div>
+    </div>
+  </aside>
+
+  <main id="viewport" class="flex-1 relative bg-zinc-950 cursor-grab">
+    <canvas id="gearCanvas" class="block"></canvas>
+    <div class="absolute top-4 left-4 z-10 text-xs text-zinc-500 font-mono bg-zinc-950/85 px-2.5 py-1.5 rounded-lg pointer-events-none" id="canvasInfo">Zoom: 100%</div>
+    <div class="absolute top-4 right-4 z-10 bg-zinc-950/90 px-3.5 py-2.5 rounded-lg border border-zinc-700 text-xs font-mono" id="canvasLegend">
+      <div class="flex items-center gap-2 mb-1"><div class="w-2.5 h-0.5 rounded-sm bg-zinc-100"></div><span class="text-zinc-500">Gear 1</span></div>
+      <div id="legend-g2" class="flex items-center gap-2 mb-1" style="display:none"><div class="w-2.5 h-0.5 rounded-sm bg-cyan-400"></div><span class="text-zinc-500">Gear 2</span></div>
+      <div id="legend-sun" class="flex items-center gap-2 mb-1" style="display:none"><div class="w-2.5 h-0.5 rounded-sm bg-amber-400"></div><span class="text-zinc-500">Sun</span></div>
+      <div id="legend-planet" class="flex items-center gap-2 mb-1" style="display:none"><div class="w-2.5 h-0.5 rounded-sm bg-cyan-400"></div><span class="text-zinc-500">Planets</span></div>
+      <div id="legend-ring" class="flex items-center gap-2 mb-1" style="display:none"><div class="w-2.5 h-0.5 rounded-sm bg-rose-400"></div><span class="text-zinc-500">Ring</span></div>
+      <div id="legend-carrier" class="flex items-center gap-2 mb-1" style="display:none"><div class="w-2.5 h-0.5 rounded-sm bg-emerald-400"></div><span class="text-zinc-500">Carrier</span></div>
+      <div class="flex items-center gap-2 mb-1"><div class="w-2.5 h-0.5 rounded-sm bg-amber-500 opacity-60"></div><span class="text-zinc-500">Pitch circle</span></div>
+      <div class="flex items-center gap-2"><div class="w-2.5 h-0.5 rounded-sm bg-blue-500 opacity-60"></div><span class="text-zinc-500">Base circle</span></div>
+    </div>
+    <!-- Animation panel -->
+    <div id="anim-panel" class="absolute bottom-4 left-4 z-10 flex items-center gap-3 bg-zinc-900/95 border border-zinc-700 rounded-lg px-3 py-2" style="display:none">
+      <button id="btn-play" class="w-9 h-9 rounded-full bg-amber-500 hover:bg-amber-400 text-zinc-900 flex items-center justify-center cursor-pointer transition-colors flex-shrink-0">
+        <svg id="icon-play" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21"/></svg>
+        <svg id="icon-pause" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="5" y="3" width="4" height="18"/><rect x="15" y="3" width="4" height="18"/></svg>
       </button>
-    );
+      <input type="range" id="r-speed" min="0.1" max="5" step="0.1" value="1" class="w-24">
+      <span class="font-mono text-xs text-zinc-400 min-w-[36px]" id="v-speed">1.0x</span>
+    </div>
+    <!-- Zoom controls -->
+    <div class="absolute bottom-4 right-4 flex gap-1.5 z-10">
+      <button class="w-9 h-9 border border-zinc-700 bg-zinc-900 rounded-lg text-zinc-400 cursor-pointer flex items-center justify-center transition-all hover:bg-zinc-800 hover:text-zinc-100" id="btn-zoomfit" title="Zoom to fit"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h18"/></svg></button>
+      <button class="w-9 h-9 border border-zinc-700 bg-zinc-900 rounded-lg text-zinc-400 cursor-pointer flex items-center justify-center transition-all hover:bg-zinc-800 hover:text-zinc-100" id="btn-zoomin" title="Zoom in"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+      <button class="w-9 h-9 border border-zinc-700 bg-zinc-900 rounded-lg text-zinc-400 cursor-pointer flex items-center justify-center transition-all hover:bg-zinc-800 hover:text-zinc-100" id="btn-zoomout" title="Zoom out"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+    </div>
+  </main>
+</div>
+<div id="toast" class="px-5 py-2.5 bg-zinc-800 border border-zinc-700 rounded-xl text-sm font-mono z-[200] pointer-events-none whitespace-nowrap shadow-lg text-zinc-100"></div>
 
-    // Login Modal
-    const LoginModal = ({ onLogin, onClose }) => {
-      const [password, setPassword] = useState('');
-      const [error, setError] = useState('');
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   INVOLUTE GEAR MATH
+   ═══════════════════════════════════════════════════════════════ */
+const GearMath = {
+  generate(p) {
+    const { module: m, teeth: z, pressureAngleDeg: paDeg, profileShift: x, clearance: c, resolution: res } = p;
+    const alpha = paDeg * Math.PI / 180;
+    const inv = a => Math.tan(a) - a;
+    const rp = m * z / 2, rb = rp * Math.cos(alpha);
+    const ra = rp + m * (1 + x), rf = Math.max(rp - m * (1 + c - x), 0.1);
+    const toothThk = m * (Math.PI / 2 + 2 * x * Math.tan(alpha));
+    const halfA = toothThk / (2 * rp), invA = inv(alpha);
+    const angP = 2 * Math.PI / z, startR = Math.max(rb, rf);
+    const minZ = Math.ceil(2 / (Math.sin(alpha) ** 2));
+    const hasUndercut = z < minZ && x < (minZ - z) / (2 * minZ);
 
-      const handleSubmit = (e) => {
-        e.preventDefault();
-        if (password === CONFIG.ADMIN_PASSWORD) {
-          onLogin();
-        } else {
-          setError('Invalid password');
-          setPassword('');
-        }
-      };
+    const rAng = (tc, r) => r <= rb ? tc + halfA + invA : tc + halfA + invA - inv(Math.acos(Math.min(rb / r, 1)));
+    const lAng = (tc, r) => r <= rb ? tc - halfA - invA : tc - halfA - invA + inv(Math.acos(Math.min(rb / r, 1)));
 
-      useEffect(() => {
-        const handleEsc = (e) => e.key === 'Escape' && onClose();
-        window.addEventListener('keydown', handleEsc);
-        return () => window.removeEventListener('keydown', handleEsc);
-      }, [onClose]);
+    const pts = [], rootN = Math.max(4, Math.round(res / 4)), tipN = Math.max(3, Math.round(res / 5)), trN = 4;
+    for (let i = 0; i < z; i++) {
+      const tc = i * angP;
+      if (rf < rb) { const ba = rAng(tc, rb); for (let j = 0; j <= trN; j++) { const r = rf + (j / trN) * (rb - rf); pts.push([r * Math.cos(ba), r * Math.sin(ba)]); } }
+      for (let j = 0; j <= res; j++) { const r = startR + (j / res) * (ra - startR); const a = rAng(tc, r); pts.push([r * Math.cos(a), r * Math.sin(a)]); }
+      const rT = rAng(tc, ra), lT = lAng(tc, ra);
+      for (let j = 1; j < tipN; j++) { const a = rT + (j / tipN) * (lT - rT); pts.push([ra * Math.cos(a), ra * Math.sin(a)]); }
+      for (let j = 0; j <= res; j++) { const r = ra - (j / res) * (ra - startR); const a = lAng(tc, r); pts.push([r * Math.cos(a), r * Math.sin(a)]); }
+      if (rf < rb) { const ba = lAng(tc, rb); for (let j = 1; j <= trN; j++) { const r = rb - (j / trN) * (rb - rf); pts.push([r * Math.cos(ba), r * Math.sin(ba)]); } }
+      const gs = rf < rb ? lAng(tc, rb) : lAng(tc, startR);
+      const ge = rf < rb ? rAng((i + 1) * angP, rb) : rAng((i + 1) * angP, startR);
+      for (let j = 1; j <= rootN; j++) { const a = gs + (j / rootN) * (ge - gs); pts.push([rf * Math.cos(a), rf * Math.sin(a)]); }
+    }
+    const cl = [pts[0]];
+    for (let i = 1; i < pts.length; i++) { const dx = pts[i][0] - cl[cl.length - 1][0], dy = pts[i][1] - cl[cl.length - 1][1]; if (dx * dx + dy * dy > 1e-12) cl.push(pts[i]); }
+    if (cl.length > 2) { const dx = cl[cl.length - 1][0] - cl[0][0], dy = cl[cl.length - 1][1] - cl[0][1]; if (dx * dx + dy * dy < 1e-10) cl.pop(); }
+    return { points: cl, radii: { pitch: rp, base: rb, addendum: ra, root: rf },
+      info: { pitchDia: 2 * rp, outerDia: 2 * ra, rootDia: 2 * rf, baseDia: 2 * rb, circPitch: Math.PI * m, toothThk, addendum: m * (1 + x), dedendum: m * (1 + c - x), hasUndercut, minTeethNoUndercut: minZ } };
+  }
+};
 
-      return (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-             onClick={onClose}>
-          <div className="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-sm shadow-2xl"
-               onClick={e => e.stopPropagation()}>
-            <div className="bg-zinc-800 border-b border-zinc-700 p-3 flex items-center justify-between rounded-t-xl">
-              <div className="flex items-center gap-3">
-                <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-red-500 cursor-pointer hover:bg-red-400" onClick={onClose}></div>
-                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Icon name="Lock" size={16} className="text-amber-500" />
-                  <span className="font-mono text-zinc-200 text-sm font-bold">Admin Login</span>
-                </div>
-              </div>
-              <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300 p-1 hover:bg-zinc-700 rounded">
-                <Icon name="X" size={18} />
-              </button>
-            </div>
-            <form onSubmit={handleSubmit} className="p-6">
-              <label className="block font-mono text-xs text-zinc-500 mb-2">
-                <span className="text-green-400">$</span> enter password
-              </label>
-              <input type="password" value={password} onChange={(e) => { setPassword(e.target.value); setError(''); }}
-                     autoFocus placeholder="••••••••"
-                     className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2.5 font-mono text-sm
-                              placeholder:text-zinc-600 focus:border-amber-500 focus:outline-none mb-3" />
-              {error && (
-                <p className="text-red-400 text-xs font-mono mb-3">
-                  <span className="text-red-500">error:</span> {error}
-                </p>
-              )}
-              <button type="submit"
-                      className="w-full bg-amber-500 hover:bg-amber-400 text-zinc-900 font-mono font-bold text-sm
-                               py-2.5 rounded-lg transition-colors">
-                Authenticate
-              </button>
-            </form>
-          </div>
-        </div>
-      );
-    };
+/* ═══════════════════════════════════════════════════════════════
+   INTERNAL (RING) GEAR MATH
+   ═══════════════════════════════════════════════════════════════ */
+const RingGearMath = {
+  generate(p) {
+    const { module: m, teeth: z, pressureAngleDeg: paDeg, clearance: c, resolution: res } = p;
+    const alpha = paDeg * Math.PI / 180;
+    const inv = a => Math.tan(a) - a;
+    const rp = m * z / 2, rb = rp * Math.cos(alpha);
+    // Internal gear: addendum goes inward, dedendum goes outward
+    const ra = rp - m;          // tip of internal teeth (inward)
+    const rf = rp + m * (1 + c); // root of internal teeth (outward)
+    const toothThk = m * Math.PI / 2;
+    const halfA = toothThk / (2 * rp), invA = inv(alpha);
+    const angP = 2 * Math.PI / z;
+    const startR = Math.max(rb, ra);
 
-    // Preferences Modal
-    const PreferencesModal = ({ hiddenTabs, onToggle, onClose }) => {
-      useEffect(() => {
-        const handleEsc = (e) => e.key === 'Escape' && onClose();
-        window.addEventListener('keydown', handleEsc);
-        return () => window.removeEventListener('keydown', handleEsc);
-      }, [onClose]);
+    // Internal gear: involute curves OPPOSITE direction from external
+    // As r increases outward from rb, angle INCREASES for right flank (opposite of external)
+    const rAng = (tc, r) => r <= rb ? tc + halfA : tc + halfA - invA + inv(Math.acos(Math.min(rb / r, 1)));
+    const lAng = (tc, r) => r <= rb ? tc - halfA : tc - halfA + invA - inv(Math.acos(Math.min(rb / r, 1)));
 
-      const allTabs = [
-        { id: 'projects', icon: 'FolderGit2', name: 'Original Projects', locked: true },
-        { id: 'forked-projects', icon: 'GitFork', name: 'Forked Projects' },
-        { id: 'starred', icon: 'Star', name: 'Starred' },
-        ...CONFIG.INTEGRATED_APPS.map(app => ({ id: app.id, icon: app.icon, name: app.name }))
-      ];
+    const pts = [], rootN = Math.max(4, Math.round(res / 4)), tipN = Math.max(3, Math.round(res / 5));
+    for (let i = 0; i < z; i++) {
+      const tc = i * angP;
+      // Right involute: from rf (root/outer) inward to rb
+      for (let j = 0; j <= res; j++) {
+        const r = rf - (j / res) * (rf - rb);
+        const a = rAng(tc, r);
+        pts.push([r * Math.cos(a), r * Math.sin(a)]);
+      }
+      // Radial line from rb inward to ra (tip)
+      if (ra < rb) {
+        const ba = rAng(tc, rb);
+        for (let j = 1; j <= 3; j++) { const r = rb - (j / 3) * (rb - ra); pts.push([r * Math.cos(ba), r * Math.sin(ba)]); }
+      }
+      // Tip arc at ra (inner tip of internal tooth)
+      const tipR = Math.min(ra, rb);
+      const rT = ra < rb ? rAng(tc, rb) : rAng(tc, rb);
+      const lT = ra < rb ? lAng(tc, rb) : lAng(tc, rb);
+      for (let j = 1; j < tipN; j++) { const a = rT + (j / tipN) * (lT - rT); pts.push([tipR * Math.cos(a), tipR * Math.sin(a)]); }
+      // Radial line from ra back outward to rb
+      if (ra < rb) {
+        const ba2 = lAng(tc, rb);
+        for (let j = 1; j <= 3; j++) { const r = ra + (j / 3) * (rb - ra); pts.push([r * Math.cos(ba2), r * Math.sin(ba2)]); }
+      }
+      // Left involute: from rb outward to rf (root)
+      for (let j = 0; j <= res; j++) {
+        const r = rb + (j / res) * (rf - rb);
+        const a = lAng(tc, r);
+        pts.push([r * Math.cos(a), r * Math.sin(a)]);
+      }
+      // Root arc at rf (outer), from left flank to next right flank
+      const gs = lAng(tc, rf);
+      const ge = rAng((i + 1) * angP, rf);
+      for (let j = 1; j <= rootN; j++) { const a = gs + (j / rootN) * (ge - gs); pts.push([rf * Math.cos(a), rf * Math.sin(a)]); }
+    }
+    const cl = [pts[0]];
+    for (let i = 1; i < pts.length; i++) { const dx = pts[i][0] - cl[cl.length - 1][0], dy = pts[i][1] - cl[cl.length - 1][1]; if (dx * dx + dy * dy > 1e-12) cl.push(pts[i]); }
+    if (cl.length > 2) { const dx = cl[cl.length - 1][0] - cl[0][0], dy = cl[cl.length - 1][1] - cl[0][1]; if (dx * dx + dy * dy < 1e-10) cl.pop(); }
+    return { points: cl, radii: { pitch: rp, base: rb, addendum: ra, root: rf },
+      info: { pitchDia: 2 * rp, innerDia: 2 * ra, outerDia: 2 * rf, baseDia: 2 * rb } };
+  }
+};
 
-      return (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-             onClick={onClose}>
-          <div className="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-md shadow-2xl"
-               onClick={e => e.stopPropagation()}>
-            <div className="bg-zinc-800 border-b border-zinc-700 p-3 flex items-center justify-between rounded-t-xl">
-              <div className="flex items-center gap-3">
-                <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-red-500 cursor-pointer hover:bg-red-400" onClick={onClose}></div>
-                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Icon name="Settings" size={16} className="text-amber-500" />
-                  <span className="font-mono text-zinc-200 text-sm font-bold">Preferences</span>
-                </div>
-              </div>
-              <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300 p-1 hover:bg-zinc-700 rounded">
-                <Icon name="X" size={18} />
-              </button>
-            </div>
-            <div className="p-4">
-              <label className="block font-mono text-xs text-zinc-500 mb-3">
-                <span className="text-green-400">$</span> visible tabs
-              </label>
-              <div className="space-y-1">
-                {allTabs.map(tab => {
-                  const isHidden = hiddenTabs.includes(tab.id);
-                  const isLocked = tab.locked;
-                  return (
-                    <button key={tab.id} disabled={isLocked}
-                            onClick={() => !isLocked && onToggle(tab.id)}
-                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg font-mono text-sm transition-colors ${
-                              isLocked ? 'text-zinc-500 cursor-default' :
-                              isHidden ? 'text-zinc-600 hover:bg-zinc-800' :
-                              'text-zinc-200 bg-zinc-800 hover:bg-zinc-750'
-                            }`}>
-                      <Icon name={tab.icon} size={16} className={isHidden ? 'text-zinc-700' : 'text-amber-500'} />
-                      <span className="flex-1 text-left truncate">{tab.name}</span>
-                      {isLocked ? (
-                        <Icon name="Lock" size={14} className="text-zinc-700" />
-                      ) : (
-                        <div className={`w-8 h-5 rounded-full relative transition-colors ${
-                          isHidden ? 'bg-zinc-700' : 'bg-amber-500'
-                        }`}>
-                          <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${
-                            isHidden ? 'left-0.5' : 'left-3.5'
-                          }`}></div>
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    };
+/* ═══════════════════════════════════════════════════════════════
+   TRANSFORM HELPERS
+   ═══════════════════════════════════════════════════════════════ */
+function transformPts(pts, angle, tx, ty) {
+  const c = Math.cos(angle), s = Math.sin(angle);
+  return pts.map(([x, y]) => [x * c - y * s + tx, x * s + y * c + ty]);
+}
 
-    // Embedded App View - iframe for local apps
-    const EmbeddedApp = ({ app, isAdmin }) => {
-      const isFullscreen = app.fullscreen;
-      const iframeRef = React.useRef(null);
+/* ═══════════════════════════════════════════════════════════════
+   DXF EXPORT
+   ═══════════════════════════════════════════════════════════════ */
+const DXFExport = {
+  generate(gear1pts, bore1, radii1, gear2pts, bore2, radii2, cd) {
+    const L = [], w = s => L.push(s);
+    w('0');w('SECTION');w('2');w('HEADER');w('9');w('$ACADVER');w('1');w('AC1015');w('9');w('$INSUNITS');w('70');w('4');w('9');w('$MEASUREMENT');w('70');w('1');w('0');w('ENDSEC');
+    w('0');w('SECTION');w('2');w('TABLES');w('0');w('TABLE');w('2');w('LAYER');w('70');w('6');
+    const addLayer = (name, color) => { w('0');w('LAYER');w('2');w(name);w('70');w('0');w('62');w(String(color));w('6');w('CONTINUOUS'); };
+    addLayer('GEAR_1', 7); addLayer('GEAR_2', 4); addLayer('BORE', 1); addLayer('PITCH_CIRCLE', 3); addLayer('BASE_CIRCLE', 5); addLayer('CENTER_LINE', 2);
+    w('0');w('ENDTAB');w('0');w('ENDSEC');
+    w('0');w('SECTION');w('2');w('ENTITIES');
+    const writePoly = (pts, layer) => { w('0');w('LWPOLYLINE');w('8');w(layer);w('90');w(String(pts.length));w('70');w('1'); for (const [x, y] of pts) { w('10');w(x.toFixed(6));w('20');w(y.toFixed(6)); } };
+    const writeCircle = (cx, cy, r, layer) => { w('0');w('CIRCLE');w('8');w(layer);w('10');w(cx.toFixed(6));w('20');w(cy.toFixed(6));w('40');w(r.toFixed(6)); };
+    writePoly(gear1pts, 'GEAR_1');
+    if (bore1 > 0) writeCircle(0, 0, bore1 / 2, 'BORE');
+    writeCircle(0, 0, radii1.pitch, 'PITCH_CIRCLE');
+    writeCircle(0, 0, radii1.base, 'BASE_CIRCLE');
+    if (gear2pts) {
+      writePoly(gear2pts, 'GEAR_2');
+      if (bore2 > 0) writeCircle(cd, 0, bore2 / 2, 'BORE');
+      writeCircle(cd, 0, radii2.pitch, 'PITCH_CIRCLE');
+      writeCircle(cd, 0, radii2.base, 'BASE_CIRCLE');
+      // center line
+      w('0');w('LINE');w('8');w('CENTER_LINE');w('10');w('0');w('20');w('0');w('11');w(cd.toFixed(6));w('21');w('0');
+    }
+    w('0');w('ENDSEC');w('0');w('EOF');
+    return L.join('\n');
+  }
+};
 
-      // Broadcast admin state to iframe on mount and when isAdmin changes
-      React.useEffect(() => {
-        const iframe = iframeRef.current;
-        if (!iframe) return;
-        const sendAuth = () => {
-          try {
-            iframe.contentWindow.postMessage({
-              type: 'admin-auth',
-              isAdmin: !!isAdmin,
-              key: isAdmin ? CONFIG.ADMIN_PASSWORD : null
-            }, '*');
-          } catch(e) {}
-        };
-        // Send on load and on admin change
-        iframe.addEventListener('load', sendAuth);
-        sendAuth();
-        return () => iframe.removeEventListener('load', sendAuth);
-      }, [isAdmin]);
+/* ═══════════════════════════════════════════════════════════════
+   SVG EXPORT
+   ═══════════════════════════════════════════════════════════════ */
+const SVGExport = {
+  generate(g1pts, bore1, radii1, g2pts, bore2, radii2, cd) {
+    const margin = 5;
+    const ra1 = radii1.addendum, ra2 = radii2 ? radii2.addendum : 0;
+    const left = -ra1 - margin, top_ = -Math.max(ra1, ra2) - margin;
+    const right = (cd || 0) + Math.max(ra1, ra2) + margin;
+    const bottom = Math.max(ra1, ra2) + margin;
+    const vw = right - left, vh = bottom - top_;
+    const ptsToD = pts => { let d = `M ${pts[0][0].toFixed(6)},${(-pts[0][1]).toFixed(6)}`; for (let i = 1; i < pts.length; i++) d += ` L ${pts[i][0].toFixed(6)},${(-pts[i][1]).toFixed(6)}`; return d + ' Z'; };
+    let s = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${vw.toFixed(2)}mm" height="${vh.toFixed(2)}mm" viewBox="${left.toFixed(4)} ${top_.toFixed(4)} ${vw.toFixed(4)} ${vh.toFixed(4)}">\n`;
+    s += `<path d="${ptsToD(g1pts)}" fill="none" stroke="#000" stroke-width="0.2"/>\n`;
+    if (bore1 > 0) s += `<circle cx="0" cy="0" r="${(bore1 / 2).toFixed(6)}" fill="none" stroke="#000" stroke-width="0.2"/>\n`;
+    s += `<circle cx="0" cy="0" r="${radii1.pitch.toFixed(6)}" fill="none" stroke="#888" stroke-width="0.1" stroke-dasharray="1,1"/>\n`;
+    if (g2pts) {
+      s += `<path d="${ptsToD(g2pts)}" fill="none" stroke="#0088cc" stroke-width="0.2"/>\n`;
+      if (bore2 > 0) s += `<circle cx="${cd.toFixed(6)}" cy="0" r="${(bore2 / 2).toFixed(6)}" fill="none" stroke="#0088cc" stroke-width="0.2"/>\n`;
+      s += `<circle cx="${cd.toFixed(6)}" cy="0" r="${radii2.pitch.toFixed(6)}" fill="none" stroke="#888" stroke-width="0.1" stroke-dasharray="1,1"/>\n`;
+    }
+    s += `</svg>`; return s;
+  }
+};
 
-      return (
-        <div className={`relative w-full bg-zinc-900 overflow-hidden shadow-2xl ${
-          isFullscreen
-            ? 'h-[calc(100vh-64px)] border-t border-zinc-700'
-            : 'h-[calc(100vh-160px)] min-h-[600px] rounded-xl border border-zinc-700'
-        }`}>
-          {/* App header bar */}
-          {!isFullscreen && (
-            <div className="bg-zinc-800 border-b border-zinc-700 px-4 py-2 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Icon name={app.icon} size={16} className="text-amber-500" />
-                  <span className="font-mono text-zinc-300 text-sm font-medium">{app.name}</span>
-                  {app.isLocal && (
-                    <span className="text-xs bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded font-mono">local</span>
-                  )}
-                </div>
-              </div>
-              <a href={app.url} target="_blank" rel="noopener noreferrer"
-                 className="flex items-center gap-1.5 bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-xs font-mono px-3 py-1.5 rounded-lg transition-colors">
-                <Icon name="ExternalLink" size={12} />
-                Open in new tab
-              </a>
-            </div>
-          )}
-          {/* iframe - works with local files */}
-          <iframe ref={iframeRef} src={app.url}
-                  className={`w-full border-0 ${isFullscreen ? 'h-full' : 'h-[calc(100%-44px)]'}`}
-                  title={app.name}
-                  allow="camera; microphone; clipboard-read; clipboard-write" />
-        </div>
-      );
-    };
+/* ═══════════════════════════════════════════════════════════════
+   CANVAS RENDERER (with animation support)
+   ═══════════════════════════════════════════════════════════════ */
+const Renderer = (() => {
+  let canvas, ctx;
+  let panX = 0, panY = 0, zoom = 1, isDrag = false, lastM = { x: 0, y: 0 };
+  let dOpts = { showPitch: true, showBase: true, showRoot: false, showOuter: false, showDims: true };
+  const D = () => Math.min(window.devicePixelRatio || 1, 2);
 
-    // Main App
-    function App() {
-      const [repos, setRepos] = useState([]);
-      const [loading, setLoading] = useState(true);
-      const [error, setError] = useState(null);
-      const [searchTerm, setSearchTerm] = useState('');
-      const [selectedLanguage, setSelectedLanguage] = useState('all');
-      const [sortBy, setSortBy] = useState('updated');
-      const [selectedRepo, setSelectedRepo] = useState(null);
-      const [username, setUsername] = useState(CONFIG.GITHUB_USERNAME);
-      const [activeView, setActiveView] = useState('projects'); // 'projects', 'forked-projects', 'starred', or app id
-      const [starredRepos, setStarredRepos] = useState([]);
-      const [loadingStarred, setLoadingStarred] = useState(false);
-      const [forkFilter, setForkFilter] = useState('all'); // 'all', 'contributed', 'not-contributed'
-      const [forkContributions, setForkContributions] = useState({}); // { repoFullName: boolean }
-      const [loadingContributions, setLoadingContributions] = useState(false);
-      const [isAdmin, setIsAdmin] = useState(false);
-      const [showLoginModal, setShowLoginModal] = useState(false);
-      const [hiddenRepos, setHiddenRepos] = useState(() => {
-        try { return JSON.parse(localStorage.getItem('hiddenRepos') || '[]'); }
-        catch { return []; }
-      });
+  // Gear state
+  let pairMode = false, planetaryMode = false;
+  let g1 = null, g2 = null; // { points, radii, bore }
+  let centerDist = 0, z1 = 24, z2 = 36;
+  let g1Angle = 0, phase2 = 0;
+  let isPlaying = false, animSpeed = 1, animId = null, lastTime = null;
+  // Planetary state
+  let sunGear = null, planetGear = null, ringGear = null;
+  let sunZ = 20, planZ = 10, ringZ = 40, nPlanets = 3, planCD = 0;
+  let sunAngle = 0, sunBore = 6, planBore = 4;
 
-      const [showPreferences, setShowPreferences] = useState(false);
-      const [showReleaseNotes, setShowReleaseNotes] = useState(false);
-      const [hiddenTabs, setHiddenTabs] = useState(() => {
-        try { return JSON.parse(localStorage.getItem('hiddenTabs') || '[]'); }
-        catch { return []; }
-      });
+  function init(c) { canvas = c; ctx = c.getContext('2d'); resize(); bindEv(); }
+  function resize() { const p = canvas.parentElement, w = p.clientWidth, h = p.clientHeight, d = D(); canvas.width = w * d; canvas.height = h * d; canvas.style.width = w + 'px'; canvas.style.height = h + 'px'; draw(); }
+  function toS(wx, wy) { const d = D(), cx = canvas.width / (2 * d), cy = canvas.height / (2 * d); return [(wx * zoom + panX + cx) * d, (-wy * zoom + panY + cy) * d]; }
+  function toW(sx, sy) { const d = D(), cx = canvas.width / (2 * d), cy = canvas.height / (2 * d); return [(sx / d - panX - cx) / zoom, -(sy / d - panY - cy) / zoom]; }
 
-      const toggleTabVisibility = (tabId) => {
-        setHiddenTabs(prev => {
-          const next = prev.includes(tabId) ? prev.filter(id => id !== tabId) : [...prev, tabId];
-          localStorage.setItem('hiddenTabs', JSON.stringify(next));
-          return next;
-        });
-      };
+  function setGear(gear, bore) { pairMode = false; planetaryMode = false; g1 = { points: gear.points, radii: gear.radii, bore }; g2 = null; z1 = 0; stopAnim(); draw(); }
 
-      const visibleApps = CONFIG.INTEGRATED_APPS.filter(app =>
-        (!app.requiresAdmin || isAdmin) && !hiddenTabs.includes(app.id)
-      );
+  function setGearPair(gear1, bore1, gear2, bore2, cd, teeth1, teeth2) {
+    pairMode = true; planetaryMode = false;
+    g1 = { points: gear1.points, radii: gear1.radii, bore: bore1 };
+    g2 = { points: gear2.points, radii: gear2.radii, bore: bore2 };
+    centerDist = cd; z1 = teeth1; z2 = teeth2;
+    phase2 = Math.PI - Math.PI / z2;
+    draw();
+  }
 
-      // If the active view is now hidden, fall back to projects
-      useEffect(() => {
-        if (activeView === 'projects') return;
-        if ((activeView === 'forked-projects' || activeView === 'starred') && hiddenTabs.includes(activeView)) {
-          setActiveView('projects');
-        } else if (activeView !== 'forked-projects' && activeView !== 'starred') {
-          const app = CONFIG.INTEGRATED_APPS.find(a => a.id === activeView);
-          if (app && hiddenTabs.includes(app.id)) setActiveView('projects');
-        }
-      }, [hiddenTabs, activeView]);
+  function setPlanetary(sun, planet, ring, cd, sz, pz, rz, np, sBore, pBore) {
+    planetaryMode = true; pairMode = false;
+    sunGear = sun; planetGear = planet; ringGear = ring;
+    planCD = cd; sunZ = sz; planZ = pz; ringZ = rz; nPlanets = np;
+    sunBore = sBore; planBore = pBore;
+    sunAngle = 0;
+    draw();
+  }
 
-      const toggleHideRepo = (repoName) => {
-        setHiddenRepos(prev => {
-          const next = prev.includes(repoName) ? prev.filter(n => n !== repoName) : [...prev, repoName];
-          localStorage.setItem('hiddenRepos', JSON.stringify(next));
-          return next;
-        });
-      };
+  function play() { if (isPlaying) return; isPlaying = true; lastTime = null; animId = requestAnimationFrame(animate); }
+  function pause() { isPlaying = false; if (animId) { cancelAnimationFrame(animId); animId = null; } }
+  function stopAnim() { pause(); g1Angle = 0; }
+  function setSpeed(s) { animSpeed = s; }
 
-      // Fetch repos
-      useEffect(() => {
-        if (username === 'YOUR_GITHUB_USERNAME') {
-          setLoading(false);
-          return;
-        }
+  function animate(ts) {
+    if (!lastTime) lastTime = ts;
+    const dt = Math.min((ts - lastTime) / 1000, 0.05);
+    lastTime = ts;
+    if (planetaryMode) { sunAngle += 0.6 * animSpeed * dt; }
+    else { g1Angle += 0.6 * animSpeed * dt; }
+    draw();
+    if (isPlaying) animId = requestAnimationFrame(animate);
+  }
 
-        const fetchRepos = async () => {
-          setLoading(true);
-          setError(null);
-          try {
-            const response = await fetch(
-              `https://api.github.com/users/${username}/repos?per_page=${CONFIG.MAX_REPOS}&sort=updated`
-            );
-            if (!response.ok) {
-              if (response.status === 404) throw new Error('User not found');
-              throw new Error('Failed to fetch repositories');
-            }
-            let data = await response.json();
+  function draw() {
+    if (!canvas) return;
+    const d = D(), w = canvas.width, h = canvas.height;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = '#09090b';
+    ctx.fillRect(0, 0, w, h);
+    drawGrid();
+    if (planetaryMode && sunGear) drawPlanetary();
+    else if (pairMode && g1 && g2) drawPair();
+    else if (g1) drawSingle();
+    updateInfo();
+  }
 
-            // Apply filters
-            if (CONFIG.HIDE_FORKS) data = data.filter(r => !r.fork);
-            if (CONFIG.EXCLUDE_REPOS.length) {
-              data = data.filter(r => !CONFIG.EXCLUDE_REPOS.includes(r.name));
-            }
-            if (CONFIG.FILTER_TOPICS.length) {
-              data = data.filter(r =>
-                r.topics && r.topics.some(t => CONFIG.FILTER_TOPICS.includes(t))
-              );
-            }
+  function drawSingle() {
+    const d = D(), { points, radii: r, bore } = g1;
+    drawRefCircles(r, 0, 0);
+    drawProfile(points, 0, 0, 0, 'rgba(244,244,245,0.85)', 'rgba(244,244,245,0.04)');
+    if (bore > 0) drawBore(bore, 0, 0, 'rgba(244,244,245,0.6)');
+    if (dOpts.showDims) drawDimLabels(r, 0, 0, '');
+  }
 
-            setRepos(data);
-          } catch (err) {
-            setError(err.message);
-          } finally {
-            setLoading(false);
-          }
-        };
-        fetchRepos();
-      }, [username]);
+  function drawPair() {
+    const d = D();
+    const angle2 = phase2 - g1Angle * z1 / z2;
 
-      // Fetch contribution status for forked repos
-      useEffect(() => {
-        if (activeView !== 'forked-projects') return;
-        const forkedRepos = repos.filter(r => r.fork);
-        const unchecked = forkedRepos.filter(r => !(r.full_name in forkContributions));
-        if (unchecked.length === 0) return;
+    // Line of centers
+    const [lx1, ly1] = toS(0, 0), [lx2, ly2] = toS(centerDist, 0);
+    ctx.strokeStyle = 'rgba(161,161,170,0.15)';
+    ctx.lineWidth = 1 * D();
+    ctx.setLineDash([6 * D(), 4 * D()]);
+    ctx.beginPath(); ctx.moveTo(lx1, ly1); ctx.lineTo(lx2, ly2); ctx.stroke();
+    ctx.setLineDash([]);
 
-        setLoadingContributions(true);
-        const checkContributions = async () => {
-          const results = { ...forkContributions };
-          await Promise.all(unchecked.map(async (repo) => {
-            try {
-              const res = await fetch(
-                `https://api.github.com/repos/${repo.full_name}/commits?author=${username}&per_page=1`
-              );
-              if (res.ok) {
-                const commits = await res.json();
-                results[repo.full_name] = commits.length > 0;
-              } else {
-                results[repo.full_name] = false;
-              }
-            } catch {
-              results[repo.full_name] = false;
-            }
-          }));
-          setForkContributions(results);
-          setLoadingContributions(false);
-        };
-        checkContributions();
-      }, [activeView, repos, username]);
+    // Pitch point
+    const pitchPt = g1.radii.pitch;
+    const [ppx, ppy] = toS(pitchPt, 0);
+    ctx.fillStyle = 'rgba(245,158,11,0.6)';
+    ctx.beginPath(); ctx.arc(ppx, ppy, 3 * D(), 0, Math.PI * 2); ctx.fill();
 
-      // Fetch starred repos
-      useEffect(() => {
-        if (activeView !== 'starred' || starredRepos.length > 0) return;
-        setLoadingStarred(true);
-        const fetchStarred = async () => {
-          try {
-            const response = await fetch(
-              `https://api.github.com/users/${username}/starred?per_page=${CONFIG.MAX_REPOS}&sort=updated`
-            );
-            if (response.ok) {
-              setStarredRepos(await response.json());
-            }
-          } catch { /* ignore */ }
-          finally { setLoadingStarred(false); }
-        };
-        fetchStarred();
-      }, [activeView, username]);
+    // Reference circles
+    drawRefCircles(g1.radii, 0, 0);
+    drawRefCircles(g2.radii, centerDist, 0);
 
-      // Get languages
-      const languages = useMemo(() => {
-        const source = activeView === 'starred' ? starredRepos : repos;
-        const langs = [...new Set(source.map(r => r.language).filter(Boolean))];
-        return ['all', ...langs.sort()];
-      }, [repos, starredRepos, activeView]);
+    // Gear profiles with rotation
+    drawProfile(g1.points, 0, 0, g1Angle, 'rgba(244,244,245,0.85)', 'rgba(244,244,245,0.04)');
+    drawProfile(g2.points, centerDist, 0, angle2, 'rgba(34,211,238,0.8)', 'rgba(34,211,238,0.03)');
 
-      // Filter and sort
-      const filteredRepos = useMemo(() => {
-        let filtered = activeView === 'starred' ? starredRepos : repos;
+    // Bores
+    if (g1.bore > 0) drawBore(g1.bore, 0, 0, 'rgba(244,244,245,0.5)');
+    if (g2.bore > 0) drawBore(g2.bore, centerDist, 0, 'rgba(34,211,238,0.5)');
 
-        // Hide hidden repos for non-admin users
-        if (!isAdmin && activeView !== 'starred') {
-          filtered = filtered.filter(r => !hiddenRepos.includes(r.name));
-        }
+    // Center dots
+    const [c1x, c1y] = toS(0, 0), [c2x, c2y] = toS(centerDist, 0);
+    ctx.fillStyle = 'rgba(244,244,245,0.4)';
+    ctx.beginPath(); ctx.arc(c1x, c1y, 2.5 * D(), 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(34,211,238,0.4)';
+    ctx.beginPath(); ctx.arc(c2x, c2y, 2.5 * D(), 0, Math.PI * 2); ctx.fill();
 
-        if (searchTerm) {
-          const term = searchTerm.toLowerCase();
-          filtered = filtered.filter(r =>
-            r.name.toLowerCase().includes(term) ||
-            (r.description && r.description.toLowerCase().includes(term)) ||
-            (r.topics && r.topics.some(t => t.toLowerCase().includes(term)))
-          );
-        }
+    if (dOpts.showDims) {
+      drawDimLabels(g1.radii, 0, 0, 'G1 ');
+      drawDimLabels(g2.radii, centerDist, 0, 'G2 ');
+    }
+  }
 
-        if (selectedLanguage !== 'all') {
-          filtered = filtered.filter(r => r.language === selectedLanguage);
-        }
+  function drawPlanetary() {
+    const d = D();
+    // Kinematics: ring fixed, sun input, carrier output
+    const carrierAngle = sunAngle * sunZ / (sunZ + ringZ);
+    // Planet spin RELATIVE to carrier (sun drives planet in opposite direction)
+    const planetRelSpin = -(sunAngle - carrierAngle) * sunZ / planZ;
 
-        if (activeView === 'forked-projects') {
-          filtered = filtered.filter(r => r.fork);
-          // Apply contribution filter
-          if (forkFilter === 'contributed') {
-            filtered = filtered.filter(r => forkContributions[r.full_name] === true);
-          } else if (forkFilter === 'not-contributed') {
-            filtered = filtered.filter(r => forkContributions[r.full_name] === false);
-          }
-        } else if (activeView !== 'starred') {
-          filtered = filtered.filter(r => !r.fork);
-        }
+    // Draw ring gear (static, with outer housing)
+    const [rcx, rcy] = toS(0, 0);
+    const housingR = (ringGear.radii.root + 2 * (ringGear.radii.root - ringGear.radii.pitch)) * zoom * d;
+    ctx.strokeStyle = 'rgba(251,113,133,0.3)'; ctx.lineWidth = 2 * d;
+    ctx.beginPath(); ctx.arc(rcx, rcy, housingR, 0, Math.PI * 2); ctx.stroke();
+    drawProfile(ringGear.points, 0, 0, 0, 'rgba(251,113,133,0.7)', 'rgba(251,113,133,0.02)');
 
-        return filtered.sort((a, b) => {
-          switch (sortBy) {
-            case 'stars': return b.stargazers_count - a.stargazers_count;
-            case 'name': return a.name.localeCompare(b.name);
-            default: return new Date(b.updated_at) - new Date(a.updated_at);
-          }
-        });
-      }, [repos, starredRepos, searchTerm, selectedLanguage, activeView, sortBy, isAdmin, hiddenRepos, forkFilter, forkContributions]);
+    // Draw carrier circle
+    ctx.strokeStyle = 'rgba(52,211,153,0.35)'; ctx.lineWidth = 1.5 * d;
+    ctx.setLineDash([8 * d, 4 * d]);
+    ctx.beginPath(); ctx.arc(rcx, rcy, planCD * zoom * d, 0, Math.PI * 2); ctx.stroke();
+    ctx.setLineDash([]);
 
-      return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-100">
-          {/* Grid background */}
-          <div className="fixed inset-0 opacity-5 pointer-events-none"
-               style={{ backgroundImage: 'linear-gradient(rgba(251,191,36,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(251,191,36,0.3) 1px, transparent 1px)',
-                        backgroundSize: '50px 50px' }}></div>
-
-          {/* Header */}
-          <header className="relative border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-sm sticky top-0 z-40">
-            <div className="max-w-7xl mx-auto px-4 py-3">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="p-1.5 bg-amber-500/20 rounded-lg border border-amber-500/30">
-                    <Icon name="Wrench" size={22} className="text-amber-500" />
-                  </div>
-                  <div className="hidden sm:block">
-                    <h1 className="text-lg font-mono font-bold leading-tight">
-                      <span className="text-amber-500">$</span> {CONFIG.SITE_TITLE.toLowerCase().replace(/\s/g, '_')}
-                    </h1>
-                    <p className="text-zinc-500 text-xs font-mono">
-                      <span className="text-green-400">→</span> {CONFIG.TAGLINE}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Navigation Tabs - compact icon bar */}
-                <div className="flex items-center gap-1 flex-1 justify-center min-w-0">
-                  <NavTab active={activeView === 'projects'} icon="FolderGit2" label="Original Projects"
-                          onClick={() => setActiveView('projects')} />
-                  {!hiddenTabs.includes('forked-projects') && (
-                    <NavTab active={activeView === 'forked-projects'} icon="GitFork" label="Forked Projects"
-                            onClick={() => setActiveView('forked-projects')} />
-                  )}
-                  {!hiddenTabs.includes('starred') && (
-                    <NavTab active={activeView === 'starred'} icon="Star" label="Starred"
-                            onClick={() => setActiveView('starred')} />
-                  )}
-                  {visibleApps.map(app => (
-                    <NavTab key={app.id} active={activeView === app.id} icon={app.icon} label={app.name}
-                            onClick={() => setActiveView(app.id)} />
-                  ))}
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  <a href={`https://github.com/${username}`} target="_blank" rel="noopener noreferrer"
-                     title={`@${username}`}
-                     className="flex items-center justify-center w-9 h-9 rounded-lg text-zinc-400 hover:text-amber-400 hover:bg-zinc-800 transition-colors">
-                    <Icon name="Github" size={18} />
-                  </a>
-                  {isAdmin ? (
-                    <>
-                      <button onClick={() => setShowPreferences(true)}
-                              className="flex items-center justify-center w-9 h-9 rounded-lg bg-zinc-800/60 text-zinc-400
-                                       hover:text-amber-400 hover:bg-zinc-700 transition-colors"
-                              title="Preferences">
-                        <Icon name="Settings" size={16} />
-                      </button>
-                      <button onClick={() => setIsAdmin(false)}
-                              className="flex items-center justify-center w-9 h-9 rounded-lg bg-amber-500/20 text-amber-400
-                                       hover:bg-amber-500/30 transition-colors border border-amber-500/30"
-                              title="Logout">
-                        <Icon name="LogOut" size={16} />
-                      </button>
-                    </>
-                  ) : (
-                    <button onClick={() => setShowLoginModal(true)}
-                            className="flex items-center justify-center w-9 h-9 rounded-lg bg-zinc-800/60 text-zinc-500
-                                     hover:text-zinc-300 hover:bg-zinc-700 transition-colors"
-                            title="Login">
-                      <Icon name="Lock" size={16} />
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </header>
-
-          {/* Filters - show in projects, forked-projects, and starred views */}
-          {(activeView === 'projects' || activeView === 'forked-projects' || activeView === 'starred') && !loading && !error && !loadingStarred && (
-            <div className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm sticky top-[61px] z-30">
-              <div className="max-w-7xl mx-auto px-4 py-4">
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <div className="relative flex-1">
-                    <Icon name="Search" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
-                    <input type="text" placeholder="Search projects..."
-                           value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-                           className="w-full bg-zinc-800 border border-zinc-700 rounded-lg pl-10 pr-4 py-2.5 font-mono text-sm
-                                    placeholder:text-zinc-600 focus:border-amber-500 focus:outline-none" />
-                  </div>
-                  <div className="relative">
-                    <select value={selectedLanguage} onChange={(e) => setSelectedLanguage(e.target.value)}
-                            className="appearance-none bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2.5 pr-10 font-mono text-sm
-                                     focus:border-amber-500 focus:outline-none cursor-pointer min-w-[140px]">
-                      {languages.map(lang => (
-                        <option key={lang} value={lang}>{lang === 'all' ? 'All Languages' : lang}</option>
-                      ))}
-                    </select>
-                    <Icon name="ChevronDown" size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
-                  </div>
-                  {activeView === 'forked-projects' && (
-                    <div className="relative">
-                      <select value={forkFilter} onChange={(e) => setForkFilter(e.target.value)}
-                              className="appearance-none bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2.5 pr-10 font-mono text-sm
-                                       focus:border-amber-500 focus:outline-none cursor-pointer min-w-[180px]"
-                              disabled={loadingContributions}>
-                        <option value="all">All Forks</option>
-                        <option value="contributed">My Commits</option>
-                        <option value="not-contributed">No Commits By Me</option>
-                      </select>
-                      <Icon name={loadingContributions ? "Loader" : "ChevronDown"} size={16}
-                            className={`absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none${loadingContributions ? ' animate-spin' : ''}`} />
-                    </div>
-                  )}
-                  <div className="relative">
-                    <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}
-                            className="appearance-none bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2.5 pr-10 font-mono text-sm
-                                     focus:border-amber-500 focus:outline-none cursor-pointer min-w-[160px]">
-                      <option value="updated">Recently Updated</option>
-                      <option value="stars">Most Stars</option>
-                      <option value="name">Alphabetical</option>
-                    </select>
-                    <Icon name="ChevronDown" size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Fullscreen App View - rendered outside main container */}
-          {activeView !== 'projects' && activeView !== 'forked-projects' && activeView !== 'starred' && (() => {
-            const app = CONFIG.INTEGRATED_APPS.find(a => a.id === activeView);
-            if (app && app.requiresAdmin && !isAdmin) return null;
-            return app && app.fullscreen ? <EmbeddedApp app={app} isAdmin={isAdmin} /> : null;
-          })()}
-
-          {/* Main */}
-          <main className="max-w-7xl mx-auto px-4 py-6 relative">
-            {/* Embedded App View (non-fullscreen) */}
-            {activeView !== 'projects' && activeView !== 'forked-projects' && activeView !== 'starred' && (() => {
-              const app = CONFIG.INTEGRATED_APPS.find(a => a.id === activeView);
-              if (app && app.requiresAdmin && !isAdmin) return null;
-              return app && !app.fullscreen ? <EmbeddedApp app={app} isAdmin={isAdmin} /> : null;
-            })()}
-
-            {/* Projects View */}
-            {(activeView === 'projects' || activeView === 'forked-projects' || activeView === 'starred') && (
-              <>
-                {(activeView === 'starred' ? loadingStarred : loading) ? (
-                  <div className="flex flex-col items-center justify-center py-20">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-amber-500 mb-4"></div>
-                    <p className="font-mono text-zinc-400">{activeView === 'starred' ? 'Fetching starred repos...' : 'Fetching projects from GitHub...'}</p>
-                  </div>
-                ) : error ? (
-                  <div className="text-center py-20">
-                    <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-6 max-w-md mx-auto">
-                      <Icon name="AlertCircle" size={32} className="mx-auto mb-3 text-red-400" />
-                      <p className="text-red-400 font-mono">{error}</p>
-                      <p className="text-zinc-500 text-sm mt-2">Check the username and try again.</p>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="mb-6 font-mono text-sm text-zinc-500">
-                      <span className="text-green-400">→</span> Found <span className="text-amber-400">{filteredRepos.length}</span> {activeView === 'starred' ? 'starred repos' : 'projects'}
-                      {searchTerm && <span> matching "{searchTerm}"</span>}
-                    </div>
-
-                    {filteredRepos.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredRepos.map(repo => (
-                          <ProjectCard key={repo.id} repo={repo}
-                                       onClick={() => activeView === 'starred' ? window.open(repo.html_url, '_blank') : setSelectedRepo(repo)}
-                                       isAdmin={isAdmin} isHidden={hiddenRepos.includes(repo.name)}
-                                       onToggleHide={toggleHideRepo} />
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-20">
-                        <Icon name="Package" size={48} className="mx-auto mb-4 text-zinc-600" />
-                        <p className="font-mono text-zinc-500">No projects match your filters</p>
-                      </div>
-                    )}
-                  </>
-                )}
-              </>
-            )}
-          </main>
-
-          {/* Footer */}
-          <footer className="border-t border-zinc-800 bg-zinc-900/50 py-8 mt-12">
-            <div className="max-w-7xl mx-auto px-4 text-center space-y-2">
-              <p className="font-mono text-sm text-zinc-600">
-                <span className="text-amber-500/50">/*</span> Built with React • Powered by GitHub API <span className="text-amber-500/50">*/</span>
-              </p>
-              <div className="flex items-center justify-center gap-3 font-mono text-xs text-zinc-700">
-                {BUILD_COMMIT !== 'dev' && (
-                  <>
-                    <a href={`https://github.com/${username}/pages/commit/${BUILD_COMMIT}`}
-                       target="_blank" rel="noopener noreferrer"
-                       className="flex items-center gap-1 hover:text-zinc-500 transition-colors">
-                      <Icon name="GitCommitHorizontal" size={12} />
-                      <span>{BUILD_COMMIT.slice(0, 7)}</span>
-                    </a>
-                    <span className="text-zinc-800">•</span>
-                  </>
-                )}
-                <span className="flex items-center gap-1">
-                  <Icon name="Calendar" size={12} />
-                  <span>{BUILD_DATE !== 'dev' ? BUILD_DATE : 'development'}</span>
-                </span>
-                <span className="text-zinc-800">•</span>
-                <button onClick={() => setShowReleaseNotes(!showReleaseNotes)}
-                        className="flex items-center gap-1 hover:text-zinc-500 transition-colors cursor-pointer bg-transparent border-none p-0 font-mono text-xs text-zinc-700">
-                  <Icon name="ScrollText" size={12} />
-                  <span>Release Notes</span>
-                  <Icon name={showReleaseNotes ? 'ChevronUp' : 'ChevronDown'} size={10} />
-                </button>
-              </div>
-
-              {/* Expandable Release Notes */}
-              {showReleaseNotes && (
-                <div className="mt-4 max-w-2xl mx-auto text-left">
-                  <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-                    <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
-                      <h3 className="font-mono text-sm text-zinc-300 flex items-center gap-2">
-                        <Icon name="ScrollText" size={14} className="text-amber-500" />
-                        Version History
-                      </h3>
-                      <a href={`https://github.com/${username}/pages/blob/main/RELEASES.md`}
-                         target="_blank" rel="noopener noreferrer"
-                         className="font-mono text-xs text-amber-500 hover:text-amber-400 transition-colors flex items-center gap-1">
-                        Full changelog
-                        <Icon name="ExternalLink" size={10} />
-                      </a>
-                    </div>
-                    <div className="max-h-64 overflow-y-auto">
-                      {(() => {
-                        const grouped = {};
-                        VERSION_HISTORY.forEach(v => {
-                          if (!grouped[v.date]) grouped[v.date] = [];
-                          grouped[v.date].push(v);
-                        });
-                        return Object.entries(grouped).map(([date, entries]) => (
-                          <div key={date}>
-                            <div className="px-4 py-2 bg-zinc-800/50 font-mono text-xs text-zinc-400 sticky top-0">
-                              {date}
-                            </div>
-                            {entries.map((v, i) => (
-                              <div key={v.hash} className="px-4 py-2 border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors">
-                                <div className="flex items-start gap-2">
-                                  <a href={`https://github.com/${username}/pages/commit/${v.hash}`}
-                                     target="_blank" rel="noopener noreferrer"
-                                     className="font-mono text-xs text-amber-600 hover:text-amber-500 transition-colors shrink-0 mt-0.5">
-                                    {v.hash}
-                                  </a>
-                                  <span className="font-mono text-xs text-zinc-400">{v.changes}</span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ));
-                      })()}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </footer>
-
-          {/* Login Modal */}
-          {showLoginModal && (
-            <LoginModal onLogin={() => { setIsAdmin(true); setShowLoginModal(false); }}
-                        onClose={() => setShowLoginModal(false)} />
-          )}
-
-          {/* Preferences Modal */}
-          {showPreferences && (
-            <PreferencesModal hiddenTabs={hiddenTabs} onToggle={toggleTabVisibility}
-                              onClose={() => setShowPreferences(false)} />
-          )}
-
-          {/* Documentation Reader Modal */}
-          {selectedRepo && (
-            <ProjectModal key={selectedRepo.id} repo={selectedRepo} username={username}
-                          onClose={() => setSelectedRepo(null)} />
-          )}
-        </div>
-      );
+    // Draw carrier arms
+    for (let i = 0; i < nPlanets; i++) {
+      const angle = carrierAngle + (2 * Math.PI * i) / nPlanets;
+      const px = planCD * Math.cos(angle), py = planCD * Math.sin(angle);
+      const [sx, sy] = toS(0, 0), [ex, ey] = toS(px, py);
+      ctx.strokeStyle = 'rgba(52,211,153,0.25)'; ctx.lineWidth = 3 * d;
+      ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
     }
 
-    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-  </script>
+    // Draw planets with correct meshing
+    for (let i = 0; i < nPlanets; i++) {
+      const orbitAngle = carrierAngle + (2 * Math.PI * i) / nPlanets;
+      const px = planCD * Math.cos(orbitAngle), py = planCD * Math.sin(orbitAngle);
+      // Meshing phase: gap faces sun (angle π from planet center toward origin)
+      // Per-planet offset accounts for different sun tooth at each orbit position
+      const meshPhase = Math.PI - Math.PI / planZ - (2 * Math.PI * i / nPlanets) * sunZ / planZ;
+      const pAngle = meshPhase + carrierAngle + planetRelSpin;
+      drawProfile(planetGear.points, px, py, pAngle, 'rgba(34,211,238,0.8)', 'rgba(34,211,238,0.03)');
+      if (planBore > 0) drawBore(planBore, px, py, 'rgba(34,211,238,0.5)');
+      // Planet center dot
+      const [pcx, pcy] = toS(px, py);
+      ctx.fillStyle = 'rgba(34,211,238,0.4)';
+      ctx.beginPath(); ctx.arc(pcx, pcy, 2.5 * d, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // Draw sun gear (rotating)
+    drawProfile(sunGear.points, 0, 0, sunAngle, 'rgba(251,191,36,0.9)', 'rgba(251,191,36,0.04)');
+    if (sunBore > 0) drawBore(sunBore, 0, 0, 'rgba(251,191,36,0.5)');
+
+    // Reference circles
+    if (dOpts.showPitch) {
+      const circ = (rad, ox, oy, col) => {
+        const [ccx, ccy] = toS(ox, oy);
+        ctx.strokeStyle = col; ctx.lineWidth = 1 * d;
+        ctx.setLineDash([6 * d, 3 * d]);
+        ctx.beginPath(); ctx.arc(ccx, ccy, rad * zoom * d, 0, Math.PI * 2); ctx.stroke();
+        ctx.setLineDash([]);
+      };
+      circ(sunGear.radii.pitch, 0, 0, 'rgba(245,158,11,0.35)');
+      circ(ringGear.radii.pitch, 0, 0, 'rgba(251,113,133,0.25)');
+    }
+
+    // Sun center dot
+    const [scx, scy] = toS(0, 0);
+    ctx.fillStyle = 'rgba(251,191,36,0.5)';
+    ctx.beginPath(); ctx.arc(scx, scy, 3 * d, 0, Math.PI * 2); ctx.fill();
+  }
+
+  function drawProfile(pts, ox, oy, angle, stroke, fill) {
+    const d = D(), cos = Math.cos(angle), sin = Math.sin(angle);
+    ctx.beginPath();
+    for (let i = 0; i < pts.length; i++) {
+      const [x, y] = pts[i];
+      const rx = x * cos - y * sin + ox, ry = x * sin + y * cos + oy;
+      const [sx, sy] = toS(rx, ry);
+      if (i === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+    }
+    ctx.closePath();
+    ctx.fillStyle = fill; ctx.fill();
+    ctx.strokeStyle = stroke; ctx.lineWidth = 1.5 * d; ctx.stroke();
+  }
+
+  function drawBore(bore, ox, oy, color) {
+    const [cx, cy] = toS(ox, oy);
+    ctx.strokeStyle = color; ctx.lineWidth = 1.2 * D();
+    ctx.beginPath(); ctx.arc(cx, cy, bore / 2 * zoom * D(), 0, Math.PI * 2); ctx.stroke();
+  }
+
+  function drawRefCircles(r, ox, oy) {
+    const d = D();
+    const circ = (rad, col, dash) => {
+      const [cx, cy] = toS(ox, oy);
+      ctx.strokeStyle = col; ctx.lineWidth = 1 * d;
+      ctx.setLineDash(dash.map(v => v * d));
+      ctx.beginPath(); ctx.arc(cx, cy, rad * zoom * d, 0, Math.PI * 2); ctx.stroke();
+      ctx.setLineDash([]);
+    };
+    if (dOpts.showRoot) circ(r.root, 'rgba(239,68,68,0.35)', [4, 3]);
+    if (dOpts.showBase) circ(r.base, 'rgba(59,130,246,0.4)', [3, 3]);
+    if (dOpts.showPitch) circ(r.pitch, 'rgba(245,158,11,0.45)', [6, 3]);
+    if (dOpts.showOuter) circ(r.addendum, 'rgba(167,139,250,0.35)', [4, 3]);
+  }
+
+  function drawDimLabels(r, ox, oy, prefix) {
+    const d = D(), la = Math.PI * 0.28;
+    const dimL = (rad, lbl, col) => {
+      const [lx, ly] = toS(ox + rad * Math.cos(la), rad * Math.sin(la));
+      ctx.font = `500 ${10 * d}px Inter,sans-serif`; ctx.fillStyle = col;
+      ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+      ctx.fillText(prefix + lbl + ' \u2300' + (2 * rad).toFixed(2), lx + 5 * d, ly - 3 * d);
+    };
+    if (dOpts.showPitch) dimL(r.pitch, 'PD', 'rgba(245,158,11,0.65)');
+    if (dOpts.showBase) dimL(r.base, 'BD', 'rgba(59,130,246,0.55)');
+    if (dOpts.showRoot) dimL(r.root, 'RD', 'rgba(239,68,68,0.55)');
+    if (dOpts.showOuter) dimL(r.addendum, 'OD', 'rgba(167,139,250,0.55)');
+  }
+
+  function drawGrid() {
+    const d = D(), w = canvas.width / d, h = canvas.height / d;
+    const raw = 50 / zoom, mag = Math.pow(10, Math.floor(Math.log10(raw))), norm = raw / mag;
+    let sp; if (norm < 2) sp = mag; else if (norm < 5) sp = 2 * mag; else sp = 5 * mag;
+    const mSp = sp / 5;
+    const [wx0, wy0] = toW(0, 0), [wx1, wy1] = toW(w * d, h * d);
+    const mnX = Math.min(wx0, wx1), mxX = Math.max(wx0, wx1), mnY = Math.min(wy0, wy1), mxY = Math.max(wy0, wy1);
+    if (mSp * zoom > 4) {
+      ctx.strokeStyle = 'rgba(63,63,70,0.3)'; ctx.lineWidth = 0.5 * d; ctx.beginPath();
+      for (let x = Math.floor(mnX / mSp) * mSp; x <= mxX; x += mSp) { const [sx] = toS(x, 0); ctx.moveTo(sx, 0); ctx.lineTo(sx, h * d); }
+      for (let y = Math.floor(mnY / mSp) * mSp; y <= mxY; y += mSp) { const [, sy] = toS(0, y); ctx.moveTo(0, sy); ctx.lineTo(w * d, sy); }
+      ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(63,63,70,0.7)'; ctx.lineWidth = 0.8 * d; ctx.beginPath();
+    for (let x = Math.floor(mnX / sp) * sp; x <= mxX; x += sp) { const [sx] = toS(x, 0); ctx.moveTo(sx, 0); ctx.lineTo(sx, h * d); }
+    for (let y = Math.floor(mnY / sp) * sp; y <= mxY; y += sp) { const [, sy] = toS(0, y); ctx.moveTo(0, sy); ctx.lineTo(w * d, sy); }
+    ctx.stroke();
+    const [ox, oy] = toS(0, 0);
+    ctx.strokeStyle = 'rgba(161,161,170,0.3)'; ctx.lineWidth = 1 * d; ctx.beginPath();
+    ctx.moveTo(ox, 0); ctx.lineTo(ox, h * d); ctx.moveTo(0, oy); ctx.lineTo(w * d, oy); ctx.stroke();
+    ctx.fillStyle = 'rgba(161,161,170,0.5)'; ctx.beginPath(); ctx.arc(ox, oy, 3 * d, 0, Math.PI * 2); ctx.fill();
+    if (dOpts.showDims) {
+      ctx.font = `${10 * d}px Inter,sans-serif`; ctx.fillStyle = 'rgba(161,161,170,0.5)';
+      ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+      for (let x = Math.floor(mnX / sp) * sp; x <= mxX; x += sp) { if (Math.abs(x) < sp * 0.01) continue; const [sx] = toS(x, 0); ctx.fillText(fmtN(x), sx + 3 * d, oy + 4 * d); }
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      for (let y = Math.floor(mnY / sp) * sp; y <= mxY; y += sp) { if (Math.abs(y) < sp * 0.01) continue; const [, sy] = toS(0, y); ctx.fillText(fmtN(y), ox - 4 * d, sy); }
+    }
+  }
+  function fmtN(v) { return Math.abs(v) >= 1 ? Number(v.toFixed(1)).toString() : v.toFixed(2); }
+  function updateInfo() { document.getElementById('canvasInfo').textContent = 'Zoom: ' + (zoom * 100).toFixed(0) + '%'; }
+
+  function zoomToFit() {
+    if (!g1 && !sunGear) return;
+    const d = D(), w = canvas.width / d, h = canvas.height / d, pad = 60;
+    if (planetaryMode && ringGear) {
+      const outerR = ringGear.radii.root;
+      zoom = Math.min((w - pad) / (2 * outerR), (h - pad) / (2 * outerR));
+      panX = 0; panY = 0;
+    } else if (pairMode && g2) {
+      const maxR = Math.max(g1.radii.addendum, g2.radii.addendum);
+      const totalW = centerDist + 2 * maxR, totalH = 2 * maxR;
+      zoom = Math.min((w - pad) / totalW, (h - pad) / totalH);
+      panX = -centerDist / 2 * zoom;
+      panY = 0;
+    } else if (g1) {
+      const ra = g1.radii.addendum;
+      zoom = Math.min((w - pad) / (2 * ra), (h - pad) / (2 * ra));
+      panX = 0; panY = 0;
+    }
+    draw();
+  }
+
+  function bindEv() {
+    canvas.addEventListener('wheel', e => {
+      e.preventDefault();
+      const f = e.deltaY > 0 ? 0.9 : 1.1, d = D(), rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+      const cx = canvas.width / (2 * d), cy = canvas.height / (2 * d);
+      const wx = (mx - panX - cx) / zoom, wy = -(my - panY - cy) / zoom;
+      zoom *= f; zoom = Math.max(0.01, Math.min(zoom, 500));
+      panX = mx - cx - wx * zoom; panY = my - cy + wy * zoom;
+      draw();
+    }, { passive: false });
+    canvas.addEventListener('mousedown', e => { isDrag = true; lastM = { x: e.clientX, y: e.clientY }; });
+    window.addEventListener('mousemove', e => { if (!isDrag) return; panX += e.clientX - lastM.x; panY += e.clientY - lastM.y; lastM = { x: e.clientX, y: e.clientY }; draw(); });
+    window.addEventListener('mouseup', () => { isDrag = false; });
+    let ltd = null;
+    canvas.addEventListener('touchstart', e => { if (e.touches.length === 1) { isDrag = true; lastM = { x: e.touches[0].clientX, y: e.touches[0].clientY }; } else if (e.touches.length === 2) { isDrag = false; const dx = e.touches[0].clientX - e.touches[1].clientX, dy = e.touches[0].clientY - e.touches[1].clientY; ltd = Math.sqrt(dx * dx + dy * dy); } e.preventDefault(); }, { passive: false });
+    canvas.addEventListener('touchmove', e => { if (e.touches.length === 1 && isDrag) { panX += e.touches[0].clientX - lastM.x; panY += e.touches[0].clientY - lastM.y; lastM = { x: e.touches[0].clientX, y: e.touches[0].clientY }; draw(); } else if (e.touches.length === 2 && ltd !== null) { const dx = e.touches[0].clientX - e.touches[1].clientX, dy = e.touches[0].clientY - e.touches[1].clientY; const dist = Math.sqrt(dx * dx + dy * dy); zoom *= dist / ltd; zoom = Math.max(0.01, Math.min(zoom, 500)); ltd = dist; draw(); } e.preventDefault(); }, { passive: false });
+    canvas.addEventListener('touchend', () => { isDrag = false; ltd = null; });
+    window.addEventListener('resize', resize);
+  }
+
+  return {
+    init, setGear, setGearPair, setPlanetary, setDisplayOpt: (k, v) => { dOpts[k] = v; draw(); },
+    zoomToFit, zoomIn() { zoom *= 1.3; draw(); }, zoomOut() { zoom *= 0.77; draw(); },
+    play, pause, stopAnim, setSpeed, isPlaying: () => isPlaying,
+    draw, resize, getCanvas: () => canvas,
+    getState: () => ({ pairMode, planetaryMode, g1, g2, centerDist, phase2, sunGear, planetGear, ringGear })
+  };
+})();
+
+/* ═══════════════════════════════════════════════════════════════
+   APP CONTROLLER
+   ═══════════════════════════════════════════════════════════════ */
+(function() {
+  const $ = s => document.querySelector(s);
+  let result1 = null, result2 = null, params = {}, pairMode = false, planetaryMode = false;
+  let sunResult = null, planetResult = null, ringResult = null;
+
+  function toast(m) { const e = $('#toast'); e.textContent = m; e.classList.add('show'); setTimeout(() => e.classList.remove('show'), 2500); }
+  function dl(c, fn, mime) { const b = typeof c === 'string' ? new Blob([c], { type: mime }) : c; const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = fn; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(u); a.remove(); }, 100); }
+  function bindCtl(rId, nId, vId, fmt, cb) {
+    const r = $(rId), n = $(nId), v = $(vId);
+    function sync(src) { const val = parseFloat(src.value); if (isNaN(val)) return; if (src === r) n.value = val; else r.value = Math.max(r.min, Math.min(r.max, val)); v.textContent = fmt(val); (cb || updateGear)(); }
+    r.addEventListener('input', () => sync(r)); n.addEventListener('input', () => sync(n)); n.addEventListener('change', () => sync(n));
+  }
+
+  function readP() {
+    return {
+      module: parseFloat($('#n-mod').value) || 2, teeth: parseInt($('#n-teeth').value) || 24,
+      pressureAngleDeg: parseFloat($('#s-pa').value), profileShift: parseFloat($('#n-ps').value) || 0,
+      bore: parseFloat($('#n-bore').value) || 0, clearance: parseFloat($('#n-cl').value) || 0.25,
+      resolution: parseInt($('#n-res').value) || 40,
+      teeth2: parseInt($('#n-teeth2').value) || 36, profileShift2: parseFloat($('#n-ps2').value) || 0,
+      bore2: parseFloat($('#n-bore2').value) || 0,
+      sunTeeth: parseInt($('#n-sunz').value) || 20, planetTeeth: parseInt($('#n-planz').value) || 10,
+      nPlanets: parseInt($('#n-nplan').value) || 3,
+      sunBore: parseFloat($('#n-sunbore').value) || 0, planetBore: parseFloat($('#n-planbore').value) || 0
+    };
+  }
+
+  function updateGear() {
+    params = readP();
+    const { module: m, teeth: z, pressureAngleDeg: pa, profileShift: x, bore, clearance: c, resolution: res } = params;
+
+    // Generate gear 1
+    result1 = GearMath.generate({ module: m, teeth: z, pressureAngleDeg: pa, profileShift: x, clearance: c, resolution: res });
+    const { info: info1, points: pts1 } = result1;
+
+    // Update G1 computed values
+    const mm = v => v.toFixed(3);
+    $('#i-pd').textContent = mm(info1.pitchDia); $('#i-od').textContent = mm(info1.outerDia);
+    $('#i-rd').textContent = mm(info1.rootDia); $('#i-bd').textContent = mm(info1.baseDia);
+    $('#i-cp').textContent = mm(info1.circPitch); $('#i-tt').textContent = mm(info1.toothThk);
+    $('#i-ha').textContent = mm(info1.addendum); $('#i-hf').textContent = mm(info1.dedendum);
+    $('#i-np').textContent = pts1.length;
+    $('#i-uc').textContent = info1.hasUndercut ? 'Yes' : 'No';
+    $('#i-uc').style.color = info1.hasUndercut ? '#ef4444' : '#22c55e';
+
+    // Warnings
+    const rp = m * z / 2, rf = Math.max(rp - m * (1 + c - x), 0.1);
+    const warn = $('#warn-undercut'), wt = $('#warn-text');
+    if (info1.toothThk <= 0) { wt.textContent = 'Tooth thickness is zero or negative.'; warn.className = 'warn warn-red show'; }
+    else if (info1.hasUndercut) { wt.textContent = 'Undercut: min ' + info1.minTeethNoUndercut + ' teeth needed, or increase profile shift.'; warn.className = 'warn warn-orange show'; }
+    else { warn.classList.remove('show'); }
+
+    if (planetaryMode) {
+      const { sunTeeth: sz, planetTeeth: pz, nPlanets: np, sunBore: sb, planetBore: pb } = params;
+      const rz = sz + 2 * pz; // ring teeth = sun + 2*planet
+      const cd = m * (sz + pz) / 2;
+      const assembly = (sz + rz) % np === 0;
+
+      // Generate sun gear (use main gear params for module/PA/clearance/res)
+      sunResult = GearMath.generate({ module: m, teeth: sz, pressureAngleDeg: pa, profileShift: 0, clearance: c, resolution: res });
+      planetResult = GearMath.generate({ module: m, teeth: pz, pressureAngleDeg: pa, profileShift: 0, clearance: c, resolution: res });
+      ringResult = RingGearMath.generate({ module: m, teeth: rz, pressureAngleDeg: pa, clearance: c, resolution: res });
+
+      // Update display values
+      $('#v-ringz').textContent = rz;
+      $('#i-spd').textContent = mm(sunResult.info.pitchDia);
+      $('#i-ppd').textContent = mm(planetResult.info.pitchDia);
+      $('#i-rpd').textContent = mm(ringResult.info.pitchDia);
+      $('#i-pcd').textContent = mm(cd);
+      const overallRatio = 1 + rz / sz;
+      $('#i-ratio').textContent = overallRatio.toFixed(3) + ':1';
+      $('#i-rtz').textContent = rz;
+      $('#i-asm').textContent = assembly ? 'Valid' : 'Invalid spacing';
+      $('#i-asm').style.color = assembly ? '#22c55e' : '#ef4444';
+
+      // Update G1 computed values for sun gear
+      const sInfo = sunResult.info;
+      $('#i-pd').textContent = mm(sInfo.pitchDia); $('#i-od').textContent = mm(sInfo.outerDia);
+      $('#i-rd').textContent = mm(sInfo.rootDia); $('#i-bd').textContent = mm(sInfo.baseDia);
+
+      // Warnings
+      const warnP = $('#warn-planetary'), wtP = $('#warn-plan-text');
+      if (!assembly) { wtP.textContent = `Assembly constraint failed: (${sz}+${rz}) mod ${np} = ${(sz + rz) % np}. Planets won't space evenly.`; warnP.className = 'warn warn-red show'; }
+      else if (pz < 6) { wtP.textContent = 'Very few planet teeth may cause interference.'; warnP.className = 'warn warn-orange show'; }
+      else { warnP.classList.remove('show'); }
+
+      Renderer.setPlanetary(sunResult, planetResult, ringResult, cd, sz, pz, rz, np, sb, pb);
+    } else if (pairMode) {
+      const { teeth2: z2, profileShift2: x2, bore2 } = params;
+      result2 = GearMath.generate({ module: m, teeth: z2, pressureAngleDeg: pa, profileShift: x2, clearance: c, resolution: res });
+      const info2 = result2.info;
+      const cd = m * (z + z2) / 2 + m * (x + x2);
+
+      // Update pair info
+      $('#i-pd2').textContent = mm(info2.pitchDia); $('#i-od2').textContent = mm(info2.outerDia);
+      $('#i-cd').textContent = mm(cd);
+      const g = gcd(z, z2);
+      $('#i-gr').textContent = (z / g) + ':' + (z2 / g);
+      $('#i-sr').textContent = (z2 / z).toFixed(3) + 'x';
+
+      // Transform gear 2 for DXF/SVG export (static mesh position)
+      const phase2 = Math.PI - Math.PI / z2;
+      Renderer.setGearPair(result1, params.bore, result2, params.bore2, cd, z, z2);
+    } else {
+      result2 = null;
+      Renderer.setGear(result1, params.bore);
+    }
+  }
+
+  function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a; }
+
+  function setMode(mode) {
+    pairMode = mode === 'pair';
+    planetaryMode = mode === 'planetary';
+    // Update mode buttons
+    ['single', 'pair', 'planetary'].forEach(m => {
+      const btn = $(`#mode-${m}`);
+      btn.classList.toggle('active', m === mode);
+      btn.classList.toggle('text-zinc-400', m !== mode);
+    });
+    // Show/hide sections
+    $('#gear2-section').style.display = pairMode ? '' : 'none';
+    $('#planetary-section').style.display = planetaryMode ? '' : 'none';
+    $('#pair-info').style.display = pairMode ? '' : 'none';
+    $('#planetary-info').style.display = planetaryMode ? '' : 'none';
+    $('#anim-panel').style.display = (pairMode || planetaryMode) ? '' : 'none';
+    // Legend
+    $('#legend-g2').style.display = pairMode ? '' : 'none';
+    ['sun', 'planet', 'ring', 'carrier'].forEach(k => {
+      $(`#legend-${k}`).style.display = planetaryMode ? '' : 'none';
+    });
+    // Title
+    $('#g1-title').textContent = pairMode ? 'Gear 1' : planetaryMode ? 'Base Parameters' : 'Gear Parameters';
+    if (mode === 'single') { Renderer.stopAnim(); updatePlayBtn(false); }
+    updateGear();
+    requestAnimationFrame(() => Renderer.zoomToFit());
+  }
+
+  function updatePlayBtn(playing) {
+    $('#icon-play').style.display = playing ? 'none' : '';
+    $('#icon-pause').style.display = playing ? '' : 'none';
+  }
+
+  function generatePlanetaryDXF() {
+    const m = params.module, sz = params.sunTeeth, pz = params.planetTeeth, np = params.nPlanets;
+    const rz = sz + 2 * pz, cd = m * (sz + pz) / 2;
+    const L = [], w = s => L.push(s);
+    w('0');w('SECTION');w('2');w('HEADER');w('9');w('$ACADVER');w('1');w('AC1015');w('9');w('$INSUNITS');w('70');w('4');w('9');w('$MEASUREMENT');w('70');w('1');w('0');w('ENDSEC');
+    w('0');w('SECTION');w('2');w('TABLES');w('0');w('TABLE');w('2');w('LAYER');w('70');w('10');
+    const addLayer = (name, color) => { w('0');w('LAYER');w('2');w(name);w('70');w('0');w('62');w(String(color));w('6');w('CONTINUOUS'); };
+    addLayer('SUN_GEAR', 2); addLayer('PLANET_GEAR', 4); addLayer('RING_GEAR', 1);
+    addLayer('BORE', 7); addLayer('PITCH_CIRCLE', 3); addLayer('CARRIER', 3);
+    w('0');w('ENDTAB');w('0');w('ENDSEC');
+    w('0');w('SECTION');w('2');w('ENTITIES');
+    const writePoly = (pts, layer) => { w('0');w('LWPOLYLINE');w('8');w(layer);w('90');w(String(pts.length));w('70');w('1'); for (const [x, y] of pts) { w('10');w(x.toFixed(6));w('20');w(y.toFixed(6)); } };
+    const writeCircle = (cx, cy, r, layer) => { w('0');w('CIRCLE');w('8');w(layer);w('10');w(cx.toFixed(6));w('20');w(cy.toFixed(6));w('40');w(r.toFixed(6)); };
+    // Sun
+    writePoly(sunResult.points, 'SUN_GEAR');
+    if (params.sunBore > 0) writeCircle(0, 0, params.sunBore / 2, 'BORE');
+    writeCircle(0, 0, sunResult.radii.pitch, 'PITCH_CIRCLE');
+    // Ring
+    writePoly(ringResult.points, 'RING_GEAR');
+    writeCircle(0, 0, ringResult.radii.pitch, 'PITCH_CIRCLE');
+    // Planets (positioned at assembly angles)
+    for (let i = 0; i < np; i++) {
+      const angle = (2 * Math.PI * i) / np;
+      const px = cd * Math.cos(angle), py = cd * Math.sin(angle);
+      const ppts = transformPts(planetResult.points, 0, px, py);
+      writePoly(ppts, 'PLANET_GEAR');
+      if (params.planetBore > 0) writeCircle(px, py, params.planetBore / 2, 'BORE');
+    }
+    // Carrier circle
+    writeCircle(0, 0, cd, 'CARRIER');
+    w('0');w('ENDSEC');w('0');w('EOF');
+    return L.join('\n');
+  }
+
+  function generatePlanetarySVG() {
+    const m = params.module, sz = params.sunTeeth, pz = params.planetTeeth, np = params.nPlanets;
+    const rz = sz + 2 * pz, cd = m * (sz + pz) / 2;
+    const outerR = ringResult.radii.root, margin = 5;
+    const vw = 2 * (outerR + margin), vh = vw;
+    const left = -(outerR + margin), top_ = -(outerR + margin);
+    const ptsToD = pts => { let d = `M ${pts[0][0].toFixed(6)},${(-pts[0][1]).toFixed(6)}`; for (let i = 1; i < pts.length; i++) d += ` L ${pts[i][0].toFixed(6)},${(-pts[i][1]).toFixed(6)}`; return d + ' Z'; };
+    let s = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${vw.toFixed(2)}mm" height="${vh.toFixed(2)}mm" viewBox="${left.toFixed(4)} ${top_.toFixed(4)} ${vw.toFixed(4)} ${vh.toFixed(4)}">\n`;
+    // Ring
+    s += `<path d="${ptsToD(ringResult.points)}" fill="none" stroke="#e11d48" stroke-width="0.2"/>\n`;
+    // Sun
+    s += `<path d="${ptsToD(sunResult.points)}" fill="none" stroke="#f59e0b" stroke-width="0.2"/>\n`;
+    if (params.sunBore > 0) s += `<circle cx="0" cy="0" r="${(params.sunBore / 2).toFixed(6)}" fill="none" stroke="#f59e0b" stroke-width="0.15"/>\n`;
+    // Planets
+    for (let i = 0; i < np; i++) {
+      const angle = (2 * Math.PI * i) / np;
+      const px = cd * Math.cos(angle), py = cd * Math.sin(angle);
+      const ppts = transformPts(planetResult.points, 0, px, py);
+      s += `<path d="${ptsToD(ppts)}" fill="none" stroke="#06b6d4" stroke-width="0.2"/>\n`;
+      if (params.planetBore > 0) s += `<circle cx="${px.toFixed(6)}" cy="${(-py).toFixed(6)}" r="${(params.planetBore / 2).toFixed(6)}" fill="none" stroke="#06b6d4" stroke-width="0.15"/>\n`;
+    }
+    // Carrier
+    s += `<circle cx="0" cy="0" r="${cd.toFixed(6)}" fill="none" stroke="#10b981" stroke-width="0.1" stroke-dasharray="1,1"/>\n`;
+    // Pitch circles
+    s += `<circle cx="0" cy="0" r="${sunResult.radii.pitch.toFixed(6)}" fill="none" stroke="#888" stroke-width="0.1" stroke-dasharray="1,1"/>\n`;
+    s += `<circle cx="0" cy="0" r="${ringResult.radii.pitch.toFixed(6)}" fill="none" stroke="#888" stroke-width="0.1" stroke-dasharray="1,1"/>\n`;
+    s += `</svg>`; return s;
+  }
+
+  function init() {
+    Renderer.init($('#gearCanvas'));
+
+    // Gear 1 controls
+    bindCtl('#r-mod', '#n-mod', '#v-mod', v => v.toFixed(1));
+    bindCtl('#r-teeth', '#n-teeth', '#v-teeth', v => String(Math.round(v)));
+    bindCtl('#r-ps', '#n-ps', '#v-ps', v => v.toFixed(2));
+    bindCtl('#r-bore', '#n-bore', '#v-bore', v => v.toFixed(1));
+    bindCtl('#r-cl', '#n-cl', '#v-cl', v => v.toFixed(2));
+    bindCtl('#r-res', '#n-res', '#v-res', v => String(Math.round(v)));
+    $('#s-pa').addEventListener('change', updateGear);
+
+    // Gear 2 controls
+    bindCtl('#r-teeth2', '#n-teeth2', '#v-teeth2', v => String(Math.round(v)));
+    bindCtl('#r-ps2', '#n-ps2', '#v-ps2', v => v.toFixed(2));
+    bindCtl('#r-bore2', '#n-bore2', '#v-bore2', v => v.toFixed(1));
+
+    // Planetary controls
+    bindCtl('#r-sunz', '#n-sunz', '#v-sunz', v => String(Math.round(v)));
+    bindCtl('#r-planz', '#n-planz', '#v-planz', v => String(Math.round(v)));
+    bindCtl('#r-nplan', '#n-nplan', '#v-nplan', v => String(Math.round(v)));
+    bindCtl('#r-sunbore', '#n-sunbore', '#v-sunbore', v => v.toFixed(1));
+    bindCtl('#r-planbore', '#n-planbore', '#v-planbore', v => v.toFixed(1));
+
+    // Mode switch
+    $('#mode-single').addEventListener('click', () => setMode('single'));
+    $('#mode-pair').addEventListener('click', () => setMode('pair'));
+    $('#mode-planetary').addEventListener('click', () => setMode('planetary'));
+
+    // Animation
+    $('#btn-play').addEventListener('click', () => {
+      if (Renderer.isPlaying()) { Renderer.pause(); updatePlayBtn(false); }
+      else { Renderer.play(); updatePlayBtn(true); }
+    });
+    $('#r-speed').addEventListener('input', e => {
+      const v = parseFloat(e.target.value);
+      Renderer.setSpeed(v);
+      $('#v-speed').textContent = v.toFixed(1) + 'x';
+    });
+
+    // Display toggles
+    document.querySelectorAll('.toggle').forEach(el => {
+      el.addEventListener('click', () => { el.classList.toggle('active'); Renderer.setDisplayOpt(el.dataset.key, el.classList.contains('active')); });
+    });
+
+    // Zoom
+    $('#btn-zoomfit').addEventListener('click', () => Renderer.zoomToFit());
+    $('#btn-zoomin').addEventListener('click', () => Renderer.zoomIn());
+    $('#btn-zoomout').addEventListener('click', () => Renderer.zoomOut());
+
+    // Exports
+    $('#btn-dxf').addEventListener('click', () => {
+      if (!result1 && !sunResult) return;
+      toast('Generating DXF...');
+      setTimeout(() => {
+        if (planetaryMode && sunResult) {
+          const dxf = generatePlanetaryDXF();
+          dl(dxf, `planetary_s${params.sunTeeth}_p${params.planetTeeth}_m${params.module}.dxf`, 'application/dxf');
+        } else if (pairMode && result2) {
+          const cd = parseFloat($('#i-cd').textContent);
+          const phase2 = Math.PI - Math.PI / params.teeth2;
+          const g2t = transformPts(result2.points, phase2, cd, 0);
+          const dxf = DXFExport.generate(result1.points, params.bore, result1.radii, g2t, params.bore2, result2.radii, cd);
+          dl(dxf, `gears_z${params.teeth}_z${params.teeth2}_m${params.module}.dxf`, 'application/dxf');
+        } else {
+          const dxf = DXFExport.generate(result1.points, params.bore, result1.radii);
+          dl(dxf, `gear_z${params.teeth}_m${params.module}.dxf`, 'application/dxf');
+        }
+        toast('DXF exported!');
+      }, 30);
+    });
+
+    $('#btn-svg').addEventListener('click', () => {
+      if (!result1 && !sunResult) return;
+      toast('Generating SVG...');
+      setTimeout(() => {
+        if (planetaryMode && sunResult) {
+          const svg = generatePlanetarySVG();
+          dl(svg, `planetary_s${params.sunTeeth}_p${params.planetTeeth}_m${params.module}.svg`, 'image/svg+xml');
+        } else if (pairMode && result2) {
+          const cd = parseFloat($('#i-cd').textContent);
+          const phase2 = Math.PI - Math.PI / params.teeth2;
+          const g2t = transformPts(result2.points, phase2, cd, 0);
+          const svg = SVGExport.generate(result1.points, params.bore, result1.radii, g2t, params.bore2, result2.radii, cd);
+          dl(svg, `gears_z${params.teeth}_z${params.teeth2}_m${params.module}.svg`, 'image/svg+xml');
+        } else {
+          const svg = SVGExport.generate(result1.points, params.bore, result1.radii);
+          dl(svg, `gear_z${params.teeth}_m${params.module}.svg`, 'image/svg+xml');
+        }
+        toast('SVG exported!');
+      }, 30);
+    });
+
+    $('#btn-png').addEventListener('click', () => {
+      if (!result1 && !sunResult) return;
+      toast('Exporting PNG...');
+      setTimeout(() => {
+        Renderer.getCanvas().toBlob(blob => {
+          let name;
+          if (planetaryMode) name = `planetary_s${params.sunTeeth}_p${params.planetTeeth}_m${params.module}.png`;
+          else if (pairMode) name = `gears_z${params.teeth}_z${params.teeth2}_m${params.module}.png`;
+          else name = `gear_z${params.teeth}_m${params.module}.png`;
+          dl(blob, name, 'image/png');
+        });
+      }, 30);
+    });
+
+    // Initial render
+    updateGear();
+    requestAnimationFrame(() => Renderer.zoomToFit());
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
+})();
+</script>
 </body>
 </html>
