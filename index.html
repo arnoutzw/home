@@ -904,43 +904,6 @@
       const setCurrentSelected = viewMode === 'docs' ? setSelectedDoc : setSelectedCodeFile;
       const isTreeLoading = viewMode === 'docs' ? docsLoading : docsLoading; // both come from same fetch
 
-      // Wildcard search: * matches any chars, ? matches single char
-      const matchesSearch = useMemo(() => {
-        if (!fileSearch.trim()) return null;
-        const q = fileSearch.trim().toLowerCase();
-        // Convert wildcard pattern to regex
-        const escaped = q.replace(/[.+^${}()|[\]\\]/g, '\\$&');
-        const pattern = escaped.replace(/\*/g, '.*').replace(/\?/g, '.');
-        try {
-          const re = new RegExp(pattern);
-          return (path) => re.test(path.toLowerCase());
-        } catch {
-          return (path) => path.toLowerCase().includes(q);
-        }
-      }, [fileSearch]);
-
-      const currentFiles = useMemo(() => {
-        if (!matchesSearch) return allCurrentFiles;
-        return allCurrentFiles.filter(matchesSearch);
-      }, [allCurrentFiles, matchesSearch]);
-
-      // Auto-expand all folders when searching
-      const searchExpandedFolders = useMemo(() => {
-        if (!matchesSearch) return null;
-        const folders = {};
-        currentFiles.forEach(path => {
-          const parts = path.split('/');
-          let acc = '';
-          for (let i = 0; i < parts.length - 1; i++) {
-            acc = acc ? `${acc}/${parts[i]}` : parts[i];
-            folders[acc] = true;
-          }
-        });
-        return folders;
-      }, [currentFiles, matchesSearch]);
-
-      const effectiveExpandedFolders = searchExpandedFolders || expandedFolders;
-
       // Render highlighted code
       const renderCodeContent = (code, filePath) => {
         const lang = getLangFromPath(filePath);
