@@ -37,6 +37,10 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
   <!-- Markdown Parser & Syntax Highlighting -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
@@ -383,6 +387,20 @@
         }
       ],
     };
+
+    // ============================================
+    // FIREBASE - GitHub cache database
+    // ============================================
+    const firebaseApp = firebase.initializeApp({
+      apiKey: "AIzaSyAqRWVgti-CuXzr5AkhDKmPlu7iA2MQpUg",
+      authDomain: "arnout-s-homelab.firebaseapp.com",
+      projectId: "arnout-s-homelab",
+      storageBucket: "arnout-s-homelab.firebasestorage.app",
+      messagingSenderId: "258011834485",
+      appId: "1:258011834485:web:5afb1efaa303b4dd93f03c",
+      measurementId: "G-VXDKDLXP7L"
+    });
+    const db = firebaseApp.firestore();
     // ============================================
 
     // ============================================
@@ -1494,13 +1512,30 @@
         });
       };
 
-      // Cached GitHub fetch helper (5 min TTL)
+      // Cached GitHub fetch helper — Firestore first, localStorage fallback
       const cachedFetch = async (url, cacheKey) => {
         const CACHE_TTL = 5 * 60 * 1000;
+        const docId = cacheKey.replace(/[\/\.]/g, '_');
+
+        // 1. Check localStorage (instant)
         try {
-          const cached = JSON.parse(localStorage.getItem(cacheKey));
-          if (cached && Date.now() - cached.ts < CACHE_TTL) return cached.data;
+          const local = JSON.parse(localStorage.getItem(cacheKey));
+          if (local && Date.now() - local.ts < CACHE_TTL) return local.data;
         } catch {}
+
+        // 2. Check Firestore
+        try {
+          const doc = await db.collection('github_cache').doc(docId).get();
+          if (doc.exists) {
+            const { ts, data } = doc.data();
+            if (Date.now() - ts < CACHE_TTL) {
+              try { localStorage.setItem(cacheKey, JSON.stringify({ ts, data })); } catch {}
+              return data;
+            }
+          }
+        } catch {}
+
+        // 3. Fetch from GitHub API
         const response = await fetch(url);
         if (!response.ok) {
           if (response.status === 403) throw new Error('GitHub API rate limit exceeded. Try again in a few minutes.');
@@ -1508,7 +1543,11 @@
           throw new Error('Failed to fetch repositories');
         }
         const data = await response.json();
-        try { localStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), data })); } catch {}
+
+        // 4. Write to both caches
+        const ts = Date.now();
+        try { localStorage.setItem(cacheKey, JSON.stringify({ ts, data })); } catch {}
+        try { await db.collection('github_cache').doc(docId).set({ ts, data }); } catch {}
         return data;
       };
 
