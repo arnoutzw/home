@@ -6,6 +6,8 @@ All notable changes to Maker Portfolio, organized by date and git commit hash.
 
 ## 2026-02-08
 
+### `HEAD` - Add Woodcut Optimizer to Fabrication discipline
+
 ### `HEAD` - Add Vibration Modes, Protocol Decoder and G-code Viewer
 
 ### `HEAD` - Add Suspension Viz to Mechanical discipline
