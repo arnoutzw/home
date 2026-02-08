@@ -358,6 +358,16 @@
           isLocal: false,
           fullscreen: true,
           discipline: 'fabrication'
+        },
+        {
+          id: 'woodcut-optimizer',
+          name: 'Woodcut Optimizer',
+          icon: 'TreePine',
+          url: 'https://arnoutzw.github.io/woodcut-optimizer/',
+          description: 'Optimize cutting layouts for sheet and board stock',
+          isLocal: false,
+          fullscreen: true,
+          discipline: 'fabrication'
         }
       ],
     };
@@ -371,6 +381,7 @@
 
     // Release notes per git hash, grouped by date
     const VERSION_HISTORY = [
+      { hash: 'HEAD', date: '2026-02-08', changes: 'Add Woodcut Optimizer to Fabrication discipline' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Add Vibration Modes, Protocol Decoder and G-code Viewer' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Add Suspension Viz to Mechanical discipline' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Add Magnetic Fields to Physics and Robot Arm Studio as Kinematics alternative' },
