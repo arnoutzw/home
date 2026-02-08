@@ -4,6 +4,12 @@ All notable changes to Maker Portfolio, organized by date and git commit hash.
 
 ---
 
+## 2026-02-08
+
+### `HEAD` - Add Heat Calculator and Kinematics Studio to integrated apps
+
+---
+
 ## 2026-02-06
 
 ### `005d933` - Restyle Engineering Calculators to match portfolio's dark zinc/amber theme
