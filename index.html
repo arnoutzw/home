@@ -146,6 +146,7 @@
         { id: 'physics', name: 'Physics', icon: 'Atom' },
         { id: 'hardware', name: 'Hardware', icon: 'Cpu' },
         { id: 'fabrication', name: 'Fabrication', icon: 'Scissors' },
+        { id: 'planning', name: 'Planning', icon: 'ClipboardList' },
       ],
 
       // Apps grouped by discipline
@@ -368,6 +369,17 @@
           isLocal: false,
           fullscreen: true,
           discipline: 'fabrication'
+        },
+        // Planning
+        {
+          id: 'scrum-app',
+          name: 'Scrum Board',
+          icon: 'KanbanSquare',
+          url: 'https://arnoutzw.github.io/scrum-app/',
+          description: 'Agile scrum board for project planning',
+          isLocal: false,
+          fullscreen: true,
+          discipline: 'planning'
         }
       ],
     };
@@ -381,6 +393,7 @@
 
     // Release notes per git hash, grouped by date
     const VERSION_HISTORY = [
+      { hash: 'HEAD', date: '2026-02-08', changes: 'Add Scrum Board under new Planning discipline' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Add Woodcut Optimizer to Fabrication discipline' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Add Vibration Modes, Protocol Decoder and G-code Viewer' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Add Suspension Viz to Mechanical discipline' },
