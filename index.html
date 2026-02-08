@@ -149,7 +149,7 @@
         { id: 'electrical', name: 'Electrical', icon: 'Zap' },
         { id: 'mechanical', name: 'Mechanical', icon: 'Cog' },
         { id: 'physics', name: 'Physics', icon: 'Atom' },
-        { id: 'hardware', name: 'Hardware', icon: 'Cpu' },
+        { id: 'software', name: 'Software', icon: 'Monitor' },
         { id: 'fabrication', name: 'Fabrication', icon: 'Scissors' },
       ],
 
@@ -282,7 +282,7 @@
           fullscreen: true,
           discipline: 'physics'
         },
-        // Hardware
+        // Software
         {
           id: 'serial-app',
           name: 'Serial Terminal',
@@ -291,7 +291,7 @@
           description: 'Web serial terminal for communicating with devices',
           isLocal: false,
           fullscreen: true,
-          discipline: 'hardware'
+          discipline: 'software'
         },
         {
           id: 'jk-bms-app',
@@ -301,7 +301,7 @@
           description: 'JK BMS battery monitor',
           isLocal: false,
           fullscreen: true,
-          discipline: 'hardware'
+          discipline: 'software'
         },
         {
           id: 'pq-bms-app',
@@ -311,7 +311,7 @@
           description: 'Monitor Powerqueen LiFePO4 batteries via Bluetooth',
           isLocal: false,
           fullscreen: true,
-          discipline: 'hardware'
+          discipline: 'software'
         },
         {
           id: 'protocol-decoder-app',
@@ -321,7 +321,17 @@
           description: 'Decode SPI, I2C, UART and CAN protocol frames',
           isLocal: false,
           fullscreen: true,
-          discipline: 'hardware'
+          discipline: 'software'
+        },
+        {
+          id: 'py-lab-app',
+          name: 'PyLab',
+          icon: 'FileCode',
+          url: 'https://arnoutzw.github.io/py-lab-app/',
+          description: 'Browser Python notebook with NumPy, SciPy and Matplotlib',
+          isLocal: false,
+          fullscreen: true,
+          discipline: 'software'
         },
         // Fabrication
         {
