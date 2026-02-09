@@ -414,6 +414,26 @@
           isLocal: false,
           fullscreen: true,
           discipline: 'planning'
+        },
+        {
+          id: 'erp-app',
+          name: 'ERP',
+          icon: 'Building2',
+          url: 'https://arnoutzw.github.io/erp-app/',
+          description: 'Enterprise resource planning',
+          isLocal: false,
+          fullscreen: true,
+          discipline: 'planning'
+        },
+        {
+          id: 'invoice-maker-app',
+          name: 'Invoice Maker',
+          icon: 'Receipt',
+          url: 'https://arnoutzw.github.io/invoice-maker-app/',
+          description: 'Create and manage invoices',
+          isLocal: false,
+          fullscreen: true,
+          discipline: 'planning'
         }
       ],
     };
@@ -441,6 +461,7 @@
 
     // Release notes per git hash, grouped by date
     const VERSION_HISTORY = [
+      { hash: 'HEAD', date: '2026-02-09', changes: 'Add ERP and Invoice Maker to Planning discipline' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Add Scrum Board under new Planning discipline' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Add Woodcut Optimizer to Fabrication discipline' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Add Vibration Modes, Protocol Decoder and G-code Viewer' },
