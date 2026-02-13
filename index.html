@@ -1805,6 +1805,62 @@
       );
     };
 
+    // GitHub nav dropdown — extracted as a component so hooks are always called
+    const GitHubDropdown = ({ activeView, setActiveView, hiddenTabs }) => {
+      const repoViews = [
+        { id: 'projects', icon: 'FolderGit2', name: 'Original Projects' },
+        ...(!hiddenTabs.includes('forked-projects') ? [{ id: 'forked-projects', icon: 'GitFork', name: 'Forked Projects' }] : []),
+        ...(!hiddenTabs.includes('starred') ? [{ id: 'starred', icon: 'Star', name: 'Starred' }] : []),
+      ];
+      const isRepoActive = repoViews.some(v => v.id === activeView);
+      const [repoOpen, setRepoOpen] = useState(false);
+      const repoRef = React.useRef(null);
+
+      useEffect(() => {
+        if (!repoOpen) return;
+        const handleClick = (e) => {
+          if (repoRef.current && !repoRef.current.contains(e.target)) setRepoOpen(false);
+        };
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+      }, [repoOpen]);
+
+      return (
+        <div ref={repoRef} className="relative">
+          <button onClick={() => setRepoOpen(!repoOpen)}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-mono text-xs font-medium transition-all
+                            ${isRepoActive
+                              ? 'bg-amber-500 text-zinc-900 shadow-lg shadow-amber-500/20'
+                              : 'bg-zinc-800/60 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'}`}>
+            <Icon name="Github" size={14} />
+            <span className="hidden md:inline">GitHub</span>
+            <Icon name="ChevronDown" size={10}
+                  className={`transition-transform duration-200 ${repoOpen ? 'rotate-180' : ''}`} />
+          </button>
+          {repoOpen && (
+            <div className="absolute top-full left-0 mt-1.5 bg-zinc-900 border border-zinc-700 rounded-lg
+                            shadow-2xl shadow-black/50 z-50 min-w-[220px] py-1 overflow-hidden">
+              <div className="px-3 py-1.5 border-b border-zinc-800">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">GitHub</span>
+              </div>
+              {repoViews.map(v => (
+                <button key={v.id}
+                        onClick={() => { setActiveView(v.id); setRepoOpen(false); }}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors
+                                  ${activeView === v.id
+                                    ? 'bg-amber-500/15 text-amber-400'
+                                    : 'text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100'}`}>
+                  <Icon name={v.icon} size={16}
+                        className={activeView === v.id ? 'text-amber-500' : 'text-zinc-500'} />
+                  <span className="font-mono text-xs">{v.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    };
+
     // Main App
     function App() {
       const [repos, setRepos] = useState([]);
@@ -2141,60 +2197,9 @@
 
                 {/* Navigation - GitHub dropdown + discipline dropdowns */}
                 <div className="hidden sm:flex items-center gap-1.5 flex-1 justify-center min-w-0">
-                  {(isAdmin || authUser) && (() => {
-                    const repoViews = [
-                      { id: 'projects', icon: 'FolderGit2', name: 'Original Projects' },
-                      ...(!hiddenTabs.includes('forked-projects') ? [{ id: 'forked-projects', icon: 'GitFork', name: 'Forked Projects' }] : []),
-                      ...(!hiddenTabs.includes('starred') ? [{ id: 'starred', icon: 'Star', name: 'Starred' }] : []),
-                    ];
-                    const isRepoActive = repoViews.some(v => v.id === activeView);
-                    const [repoOpen, setRepoOpen] = React.useState(false);
-                    const repoRef = React.useRef(null);
-
-                    React.useEffect(() => {
-                      if (!repoOpen) return;
-                      const handleClick = (e) => {
-                        if (repoRef.current && !repoRef.current.contains(e.target)) setRepoOpen(false);
-                      };
-                      document.addEventListener('mousedown', handleClick);
-                      return () => document.removeEventListener('mousedown', handleClick);
-                    }, [repoOpen]);
-
-                    return (
-                      <div ref={repoRef} className="relative">
-                        <button onClick={() => setRepoOpen(!repoOpen)}
-                                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-mono text-xs font-medium transition-all
-                                          ${isRepoActive
-                                            ? 'bg-amber-500 text-zinc-900 shadow-lg shadow-amber-500/20'
-                                            : 'bg-zinc-800/60 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'}`}>
-                          <Icon name="Github" size={14} />
-                          <span className="hidden md:inline">GitHub</span>
-                          <Icon name="ChevronDown" size={10}
-                                className={`transition-transform duration-200 ${repoOpen ? 'rotate-180' : ''}`} />
-                        </button>
-                        {repoOpen && (
-                          <div className="absolute top-full left-0 mt-1.5 bg-zinc-900 border border-zinc-700 rounded-lg
-                                          shadow-2xl shadow-black/50 z-50 min-w-[220px] py-1 overflow-hidden">
-                            <div className="px-3 py-1.5 border-b border-zinc-800">
-                              <span className="font-mono text-[10px] uppercase tracking-widest text-zinc-600">GitHub</span>
-                            </div>
-                            {repoViews.map(v => (
-                              <button key={v.id}
-                                      onClick={() => { setActiveView(v.id); setRepoOpen(false); }}
-                                      className={`w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors
-                                                ${activeView === v.id
-                                                  ? 'bg-amber-500/15 text-amber-400'
-                                                  : 'text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100'}`}>
-                                <Icon name={v.icon} size={16}
-                                      className={activeView === v.id ? 'text-amber-500' : 'text-zinc-500'} />
-                                <span className="font-mono text-xs">{v.name}</span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })()}
+                  {(isAdmin || authUser) && (
+                    <GitHubDropdown activeView={activeView} setActiveView={setActiveView} hiddenTabs={hiddenTabs} />
+                  )}
                   <DisciplineNav activeView={activeView} onSelectApp={setActiveView} visibleApps={visibleApps} />
                 </div>
 
