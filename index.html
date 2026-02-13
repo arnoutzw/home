@@ -7,7 +7,7 @@
   <meta name="description" content="A portfolio of maker and tinkerer projects, powered by GitHub">
 
   <!-- Favicon -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+  <link rel="icon" type="image/svg+xml" href="zwartbol-icon.svg">
 
   <!-- Google AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4182327423467372"
@@ -2113,18 +2113,9 @@
           <header className="relative border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-sm sticky top-0 z-40">
             <div className="max-w-7xl mx-auto px-4 py-3">
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="p-1.5 bg-amber-500/20 rounded-lg border border-amber-500/30">
-                    <Icon name="Wrench" size={22} className="text-amber-500" />
-                  </div>
-                  <div className="hidden sm:block">
-                    <h1 className="text-lg font-mono font-bold leading-tight">
-                      <span className="text-amber-500">$</span> {CONFIG.SITE_TITLE.toLowerCase().replace(/\s/g, '_')}
-                    </h1>
-                    <p className="text-zinc-500 text-xs font-mono">
-                      <span className="text-green-400">→</span> {CONFIG.TAGLINE}
-                    </p>
-                  </div>
+                <div className="shrink-0">
+                  <img src="zwartbol-icon.svg" alt={CONFIG.SITE_TITLE} className="w-9 h-9 sm:hidden" />
+                  <img src="zwartbol-logo.svg" alt={CONFIG.SITE_TITLE} className="hidden sm:block h-8" />
                 </div>
 
                 {/* Mobile hamburger */}
