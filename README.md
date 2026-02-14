@@ -1,4 +1,4 @@
-# Zwartbol Industries
+# Black Sphere Industries
 
 A GitHub-powered portfolio and engineering workbench with 27 integrated tools across six disciplines — electronics, mechanical engineering, physics simulation, software development, fabrication, and project planning.
 
