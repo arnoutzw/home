@@ -4,35 +4,57 @@ A GitHub-powered portfolio and engineering workbench with 27 integrated tools ac
 
 Built as a zero-build single-page application using React 18 (UMD), Tailwind CSS (CDN), and a dark zinc/amber terminal-inspired theme. No npm, no bundler — just open `index.html`.
 
-![Portfolio](screenshots/portfolio.svg)
+## Splash Screen
+
+On load, an animated splash screen shows the Black Sphere Industries logo with a pulsing corona glow effect, tilted ring, and fade-in title. It plays for 2 seconds then fades out. When returning from an SSO redirect the splash is skipped instantly so there's no delay after authentication.
+
+![Splash Screen](screenshots/splash-screen.svg)
+
+## Landing Page
+
+Unauthenticated visitors see a company landing page with the site title, a short description, and all 27 tools organized by engineering discipline. Each tool card is clickable and opens the embedded app directly — no sign-in required to use the tools.
+
+![Landing Page](screenshots/landing-page.svg)
 
 ## Navigation
 
-Tools are organized into **six engineering disciplines**, each accessible via dropdown menus in the header. The main view shows your GitHub repositories as searchable, sortable project cards.
+Tools are organized into **six engineering disciplines**, each accessible via dropdown menus in the header. Signed-in users also get access to the GitHub project explorer with searchable, sortable project cards.
 
 ![Discipline Navigation](screenshots/discipline-nav.svg)
 
+## Authentication
+
+Two sign-in methods:
+
+- **Google SSO** via Firebase Auth — grants admin access based on email whitelist
+- **Password** — simple admin password for quick access
+
+SSO credentials are forwarded to embedded iframes via `postMessage` so child apps can share the auth context. See [`SSO_INTEGRATION.md`](SSO_INTEGRATION.md) for the iframe protocol.
+
 ## Project Explorer
 
-The default view fetches GitHub repositories and displays them as terminal-style cards:
+The project explorer is available after sign-in and fetches GitHub repositories as terminal-style cards:
+
+![Portfolio](screenshots/portfolio.svg)
 
 - **Search & filter** by name, description, topic, or language
 - **Sort** by recently updated, most stars, or alphabetically
 - **Project modal** with full README rendering, syntax-highlighted code viewer, and collapsible file tree
 - **Three tabs** — Projects (original repos), Forks, Starred
-- **Admin mode** — password-protected login to hide/unhide repos and manage preferences
+- **Admin mode** — hide/unhide repos and manage tab visibility via preferences
 
 ## Integrated Tools
 
-### Planning (5 tools)
+### Planning (6 tools)
 
 | Tool | Description |
 |------|-------------|
 | **Scrum Board** | Agile scrum board for project planning |
-| **Lab Inventory** | Electronics component inventory with QR scanning, photo uploads, and batch label printing |
+| **Lab Inventory** | Lab inventory and parts management |
 | **Notes** | Note-taking app |
 | **ERP** | Enterprise resource planning |
-| **Invoice Maker** | Create and manage invoices |
+| **ALM** | Application lifecycle management |
+| **Requirements** | Requirements management |
 
 ### Electrical (4 tools)
 
@@ -50,10 +72,10 @@ The default view fetches GitHub repositories and displays them as terminal-style
 | Tool | Description |
 |------|-------------|
 | **Engineering Calculators** | Tribology, bearings, fatigue, and machine design calculators |
-| **Gear Calculator** | Gear design and ratio calculator |
+| **Gear Design Studio** | Gear design and ratio calculator |
 | **Kinematics Studio** | Interactive kinematics and motion analysis (includes Robot Arm Studio alternative) |
 | **FEA Studio** | Finite element analysis for mechanical structures |
-| **Suspension Viz** | Suspension geometry visualization and analysis |
+| **Suspension Analysis** | Suspension geometry visualization and analysis |
 
 ### Physics (3 tools)
 
@@ -63,7 +85,7 @@ The default view fetches GitHub repositories and displays them as terminal-style
 | **Magnetic Fields** | Magnetic field visualization and simulation |
 | **Vibration Modes** | Vibration mode shapes of beams and structures |
 
-### Software (6 tools)
+### Software (5 tools)
 
 | Tool | Description |
 |------|-------------|
@@ -72,7 +94,6 @@ The default view fetches GitHub repositories and displays them as terminal-style
 | **PQ BMS Monitor** | Monitor Powerqueen LiFePO4 batteries via Bluetooth |
 | **Protocol Decoder** | Decode SPI, I2C, UART, and CAN protocol frames |
 | **PyLab** | Browser-based Python notebook with NumPy, SciPy, and Matplotlib |
-| **Pictor** | Image management platform |
 
 ### Fabrication (4 tools)
 
@@ -98,6 +119,7 @@ The default view fetches GitHub repositories and displays them as terminal-style
 | Fonts | Inter (UI), JetBrains Mono (code/headings) |
 | Icons | Lucide Icons |
 | Markdown | marked.js + highlight.js |
+| Auth | Firebase Auth (Google SSO + password) |
 | Database | Firebase Firestore (GitHub cache, feedback) |
 | Offline | Service worker (`sw.js`) |
 
@@ -125,12 +147,13 @@ The `VERSION_HISTORY` array in `index.html` drives the in-app display, while the
 
 ```
 home/
-├── index.html          # Main React SPA (single file, ~2300 lines)
+├── index.html          # Main React SPA (single file, ~2700 lines)
 ├── sw.js               # Service worker for offline caching
 ├── firebase.json       # Firebase hosting configuration
 ├── firestore.rules     # Firestore security rules
 ├── screenshots/        # SVG mockups for documentation
 ├── RELEASES.md         # Full release history
+├── SSO_INTEGRATION.md  # Iframe SSO protocol docs
 ├── claude.md           # Development guidelines
 ├── styling-guide.md    # Design system reference
 └── .githooks/
