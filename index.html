@@ -582,6 +582,17 @@
           fullscreen: true,
           discipline: 'software',
           openInNewTab: true
+        },
+        {
+          id: 'vscode-dev',
+          name: 'VS Code',
+          icon: 'Code',
+          url: 'https://vscode.dev/',
+          description: 'Cloud-based VS Code editor',
+          isLocal: false,
+          fullscreen: true,
+          discipline: 'software',
+          openInNewTab: true
         }
       ],
     };
@@ -618,6 +629,7 @@
 
     // Release notes per git hash, grouped by date
     const VERSION_HISTORY = [
+      { hash: 'HEAD', date: '2026-02-14', changes: 'Add VS Code (vscode.dev) to Software discipline' },
       { hash: 'HEAD', date: '2026-02-13', changes: 'Add Firebase SSO authentication with Google sign-in for all PWAs' },
       { hash: 'HEAD', date: '2026-02-09', changes: 'Add ERP and Invoice Maker to Planning discipline' },
       { hash: 'HEAD', date: '2026-02-08', changes: 'Add Scrum Board under new Planning discipline' },
