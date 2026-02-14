@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 640" font-family="Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+  <!-- Background -->
+  <rect width="960" height="640" fill="#09090b"/>
+
+  <!-- Grid background hint -->
+  <g opacity="0.04" stroke="#fbbf24" stroke-width="0.5">
+    <line x1="0" y1="50" x2="960" y2="50"/><line x1="0" y1="100" x2="960" y2="100"/>
+    <line x1="0" y1="150" x2="960" y2="150"/><line x1="0" y1="200" x2="960" y2="200"/>
+    <line x1="0" y1="250" x2="960" y2="250"/><line x1="0" y1="300" x2="960" y2="300"/>
+    <line x1="0" y1="350" x2="960" y2="350"/><line x1="0" y1="400" x2="960" y2="400"/>
+    <line x1="0" y1="450" x2="960" y2="450"/><line x1="0" y1="500" x2="960" y2="500"/>
+    <line x1="0" y1="550" x2="960" y2="550"/><line x1="0" y1="600" x2="960" y2="600"/>
+    <line x1="50" y1="0" x2="50" y2="640"/><line x1="100" y1="0" x2="100" y2="640"/>
+    <line x1="150" y1="0" x2="150" y2="640"/><line x1="200" y1="0" x2="200" y2="640"/>
+    <line x1="250" y1="0" x2="250" y2="640"/><line x1="300" y1="0" x2="300" y2="640"/>
+    <line x1="350" y1="0" x2="350" y2="640"/><line x1="400" y1="0" x2="400" y2="640"/>
+    <line x1="450" y1="0" x2="450" y2="640"/><line x1="500" y1="0" x2="500" y2="640"/>
+    <line x1="550" y1="0" x2="550" y2="640"/><line x1="600" y1="0" x2="600" y2="640"/>
+    <line x1="650" y1="0" x2="650" y2="640"/><line x1="700" y1="0" x2="700" y2="640"/>
+    <line x1="750" y1="0" x2="750" y2="640"/><line x1="800" y1="0" x2="800" y2="640"/>
+    <line x1="850" y1="0" x2="850" y2="640"/><line x1="900" y1="0" x2="900" y2="640"/>
+  </g>
+
+  <!-- Header bar -->
+  <rect y="0" width="960" height="56" fill="#18181b"/>
+  <rect y="56" width="960" height="1" fill="#27272a"/>
+
+  <!-- Logo -->
+  <text x="20" y="35" fill="#f59e0b" font-size="16" font-weight="700" font-family="JetBrains Mono,monospace">Zwartbol Industries</text>
+
+  <!-- Discipline nav dropdowns -->
+  <rect x="420" y="14" width="74" height="28" rx="6" fill="#27272a"/>
+  <text x="432" y="32" fill="#a1a1aa" font-size="10" font-weight="600">Planning</text>
+  <rect x="500" y="14" width="74" height="28" rx="6" fill="#27272a"/>
+  <text x="512" y="32" fill="#a1a1aa" font-size="10" font-weight="600">Electrical</text>
+  <rect x="580" y="14" width="82" height="28" rx="6" fill="#27272a"/>
+  <text x="590" y="32" fill="#a1a1aa" font-size="10" font-weight="600">Mechanical</text>
+  <rect x="668" y="14" width="66" height="28" rx="6" fill="#27272a"/>
+  <text x="680" y="32" fill="#a1a1aa" font-size="10" font-weight="600">Physics</text>
+  <rect x="740" y="14" width="72" height="28" rx="6" fill="#27272a"/>
+  <text x="752" y="32" fill="#a1a1aa" font-size="10" font-weight="600">Software</text>
+  <rect x="818" y="14" width="82" height="28" rx="6" fill="#27272a"/>
+  <text x="828" y="32" fill="#a1a1aa" font-size="10" font-weight="600">Fabrication</text>
+
+  <!-- Lock/sign-in icon -->
+  <rect x="920" y="14" width="28" height="28" rx="6" fill="#27272a"/>
+  <text x="928" y="33" fill="#71717a" font-size="12">&#128274;</text>
+
+  <!-- Hero section -->
+  <!-- Logo icon badge -->
+  <rect x="440" y="96" width="80" height="80" rx="16" fill="none" stroke="#f59e0b" stroke-opacity="0.2" stroke-width="1"/>
+  <rect x="440" y="96" width="80" height="80" rx="16" fill="#f59e0b" fill-opacity="0.06"/>
+  <circle cx="480" cy="136" r="18" fill="#27272a"/>
+  <circle cx="480" cy="136" r="12" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-opacity="0.5"/>
+
+  <!-- Title -->
+  <text x="480" y="210" text-anchor="middle" fill="#f4f4f5" font-size="28" font-weight="700" font-family="JetBrains Mono,monospace">Black Sphere Industries</text>
+
+  <!-- Description -->
+  <text x="480" y="238" text-anchor="middle" fill="#71717a" font-size="12" font-family="JetBrains Mono,monospace">Multidisciplinary engineering studio building open-source tools for</text>
+  <text x="480" y="256" text-anchor="middle" fill="#71717a" font-size="12" font-family="JetBrains Mono,monospace">electrical, mechanical, physics, and fabrication workflows.</text>
+
+  <!-- Buttons -->
+  <rect x="362" y="278" width="130" height="36" rx="8" fill="#27272a" stroke="#3f3f46"/>
+  <text x="398" y="300" fill="#d4d4d8" font-size="11" font-family="JetBrains Mono,monospace">View on GitHub</text>
+  <rect x="502" y="278" width="96" height="36" rx="8" fill="#f59e0b" fill-opacity="0.12" stroke="#f59e0b" stroke-opacity="0.3"/>
+  <text x="526" y="300" fill="#f59e0b" font-size="11" font-family="JetBrains Mono,monospace">Sign in</text>
+
+  <!-- Electrical discipline section -->
+  <text x="120" y="360" fill="#f59e0b" font-size="10" font-weight="600" letter-spacing="1.5" opacity="0.7">ELECTRICAL</text>
+  <line x1="200" y1="356" x2="840" y2="356" stroke="#27272a"/>
+
+  <!-- Tool cards row 1 -->
+  <rect x="80" y="375" width="260" height="52" rx="8" fill="#18181b" stroke="#27272a" stroke-opacity="0.6"/>
+  <rect x="92" y="385" width="32" height="32" rx="6" fill="#27272a"/>
+  <text x="102" y="406" fill="#71717a" font-size="12">&#128269;</text>
+  <text x="134" y="398" fill="#e4e4e7" font-size="12" font-family="JetBrains Mono,monospace">Datasheets</text>
+  <text x="134" y="414" fill="#52525b" font-size="9" font-family="JetBrains Mono,monospace">Search component datasheets</text>
+
+  <rect x="350" y="375" width="260" height="52" rx="8" fill="#18181b" stroke="#27272a" stroke-opacity="0.6"/>
+  <rect x="362" y="385" width="32" height="32" rx="6" fill="#27272a"/>
+  <text x="372" y="406" fill="#71717a" font-size="12">&#9889;</text>
+  <text x="404" y="398" fill="#e4e4e7" font-size="12" font-family="JetBrains Mono,monospace">Circuit Sim</text>
+  <text x="404" y="414" fill="#52525b" font-size="9" font-family="JetBrains Mono,monospace">Interactive circuit simulator</text>
+
+  <rect x="620" y="375" width="260" height="52" rx="8" fill="#18181b" stroke="#27272a" stroke-opacity="0.6"/>
+  <rect x="632" y="385" width="32" height="32" rx="6" fill="#27272a"/>
+  <text x="641" y="406" fill="#71717a" font-size="12">&#127925;</text>
+  <text x="674" y="398" fill="#e4e4e7" font-size="12" font-family="JetBrains Mono,monospace">Filter Design Studio</text>
+  <text x="674" y="414" fill="#52525b" font-size="9" font-family="JetBrains Mono,monospace">Analog and digital filter design</text>
+
+  <!-- Mechanical discipline section -->
+  <text x="120" y="462" fill="#f59e0b" font-size="10" font-weight="600" letter-spacing="1.5" opacity="0.7">MECHANICAL</text>
+  <line x1="210" y1="458" x2="840" y2="458" stroke="#27272a"/>
+
+  <!-- Tool cards row 2 -->
+  <rect x="80" y="477" width="260" height="52" rx="8" fill="#18181b" stroke="#27272a" stroke-opacity="0.6"/>
+  <rect x="92" y="487" width="32" height="32" rx="6" fill="#27272a"/>
+  <text x="101" y="508" fill="#71717a" font-size="12">&#128295;</text>
+  <text x="134" y="500" fill="#e4e4e7" font-size="12" font-family="JetBrains Mono,monospace">Eng. Calculators</text>
+  <text x="134" y="516" fill="#52525b" font-size="9" font-family="JetBrains Mono,monospace">Tribology, bearings &amp; machine design</text>
+
+  <rect x="350" y="477" width="260" height="52" rx="8" fill="#18181b" stroke="#27272a" stroke-opacity="0.6"/>
+  <rect x="362" y="487" width="32" height="32" rx="6" fill="#27272a"/>
+  <text x="372" y="508" fill="#71717a" font-size="12">&#9881;</text>
+  <text x="404" y="500" fill="#e4e4e7" font-size="12" font-family="JetBrains Mono,monospace">Gear Design Studio</text>
+  <text x="404" y="516" fill="#52525b" font-size="9" font-family="JetBrains Mono,monospace">Gear design and ratio calculator</text>
+
+  <rect x="620" y="477" width="260" height="52" rx="8" fill="#18181b" stroke="#27272a" stroke-opacity="0.6"/>
+  <rect x="632" y="487" width="32" height="32" rx="6" fill="#27272a"/>
+  <text x="642" y="508" fill="#71717a" font-size="12">&#9878;</text>
+  <text x="674" y="500" fill="#e4e4e7" font-size="12" font-family="JetBrains Mono,monospace">Kinematics Studio</text>
+  <text x="674" y="516" fill="#52525b" font-size="9" font-family="JetBrains Mono,monospace">Interactive motion analysis</text>
+
+  <!-- More disciplines hint -->
+  <text x="480" y="575" text-anchor="middle" fill="#52525b" font-size="10" font-family="JetBrains Mono,monospace">+ Physics, Software, Fabrication, Planning ...</text>
+
+  <!-- Bottom CTA -->
+  <text x="480" y="610" text-anchor="middle" fill="#3f3f46" font-size="10" font-family="JetBrains Mono,monospace">Sign in for full access to projects and tools</text>
+</svg>
